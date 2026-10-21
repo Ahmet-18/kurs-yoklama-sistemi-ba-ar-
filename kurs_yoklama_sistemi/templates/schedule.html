@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Haftalık Ders ve Etüt Programı Yönetimi - {{ course_name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 antialiased flex flex-col justify-between font-sans">
+
+    <!-- Üst Gezinme Barı -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-3">
+            
+            <div class="flex items-center gap-3">
+                <a href="{{ url_for('admin_dashboard') }}" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+                <div>
+                    <h1 class="text-base sm:text-lg font-black text-slate-900 leading-tight">Haftalık Ders ve Etüt Programı</h1>
+                    <p class="text-xs text-slate-500 font-medium">Öğrencilerin görebileceği haftalık ders saatleri ve salon dağılımı</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button onclick="toggleModal('addScheduleModal')" class="inline-flex items-center gap-1.5 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl shadow-sm transition-all">
+                    <i class="fa-solid fa-calendar-plus"></i>
+                    <span>Yeni Ders Ekle</span>
+                </button>
+                <a href="{{ url_for('admin_dashboard') }}" class="text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-xl transition-colors">
+                    <i class="fa-solid fa-chart-pie mr-1"></i> Panele Dön
+                </a>
+            </div>
+
+        </div>
+    </nav>
+
+    <!-- Ana İçerik -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full space-y-6">
+
+        <!-- Flash Mesajları -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="p-4 rounded-xl text-sm font-medium shadow-sm {% if category == 'danger' %}bg-rose-50 text-rose-700 border border-rose-200{% elif category == 'warning' %}bg-amber-50 text-amber-700 border border-amber-200{% else %}bg-emerald-50 text-emerald-700 border border-emerald-200{% endif %} flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info text-base"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Tablo Kartı -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50">
+                <div>
+                    <h2 class="text-base font-black text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-calendar-days text-indigo-600"></i>
+                        Ders & Etüt Listesi ({{ schedules|length }})
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Haftalık takvimde öğrencilere gösterilen aktif program</p>
+                </div>
+
+                <button onclick="toggleModal('addScheduleModal')" class="text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-xl shadow-xs transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-plus"></i>
+                    Yeni Ders / Etüt Ekle
+                </button>
+            </div>
+
+            {% if schedules %}
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                                <th class="py-3 px-4">Gün</th>
+                                <th class="py-3 px-4">Saat Aralığı</th>
+                                <th class="py-3 px-4">Ders / Etüt Adı</th>
+                                <th class="py-3 px-4">Öğretmen</th>
+                                <th class="py-3 px-4">Derslik / Salon</th>
+                                <th class="py-3 px-4">Not / Açıklama</th>
+                                <th class="py-3 px-4 text-right">İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-xs">
+                            {% for s in schedules %}
+                                <tr class="hover:bg-slate-50/80 transition-colors">
+                                    <td class="py-3.5 px-4">
+                                        <span class="font-bold text-xs px-2.5 py-1 rounded-lg inline-block
+                                            {% if s.day_of_week in ['Cumartesi', 'Pazar'] %}bg-purple-100 text-purple-800 border border-purple-200
+                                            {% else %}bg-indigo-100 text-indigo-800 border border-indigo-200{% endif %}">
+                                            {{ s.day_of_week }}
+                                        </span>
+                                    </td>
+
+                                    <td class="py-3.5 px-4 font-mono font-bold text-slate-800">
+                                        <i class="fa-regular fa-clock text-slate-400 mr-1"></i>
+                                        {{ s.start_time }} - {{ s.end_time }}
+                                    </td>
+
+                                    <td class="py-3.5 px-4">
+                                        <span class="font-bold text-slate-900 text-sm block">{{ s.lesson_name }}</span>
+                                    </td>
+
+                                    <td class="py-3.5 px-4 text-slate-700 font-semibold">
+                                        {{ s.teacher_name or '-' }}
+                                    </td>
+
+                                    <td class="py-3.5 px-4">
+                                        <span class="text-[11px] font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md border border-slate-200">
+                                            {{ s.classroom or 'Ana Derslik' }}
+                                        </span>
+                                    </td>
+
+                                    <td class="py-3.5 px-4 text-slate-500 italic">
+                                        {{ s.note or '-' }}
+                                    </td>
+
+                                    <td class="py-3.5 px-4 text-right">
+                                        <form action="{{ url_for('delete_schedule_route', schedule_id=s.id) }}" method="POST" onsubmit="return confirm('{{ s.day_of_week }} günkü {{ s.lesson_name }} dersini silmek istediğinize emin misiniz?');" class="inline">
+                                            <button type="submit" class="p-1.5 bg-slate-100 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-lg transition-colors" title="Dersi Sil">
+                                                <i class="fa-regular fa-trash-can"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="p-8 text-center text-slate-400">
+                    <i class="fa-solid fa-calendar-xmark text-3xl mb-2 text-slate-300"></i>
+                    <p class="text-xs">Programda henüz ekli ders bulunmuyor.</p>
+                </div>
+            {% endif %}
+        </div>
+
+    </main>
+
+    <!-- YENİ DERS EKLEME MODALI -->
+    <div id="addScheduleModal" class="fixed inset-0 bg-slate-900/80 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-calendar-plus"></i>
+                    </div>
+                    <h3 class="text-base font-black text-slate-900">Programa Ders / Etüt Ekle</h3>
+                </div>
+                <button onclick="toggleModal('addScheduleModal')" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form action="{{ url_for('add_schedule_route') }}" method="POST" class="space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Ders Günü <span class="text-rose-500">*</span>
+                        </label>
+                        <select name="day_of_week" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <option value="Pazartesi">Pazartesi</option>
+                            <option value="Salı">Salı</option>
+                            <option value="Çarşamba">Çarşamba</option>
+                            <option value="Perşembe">Perşembe</option>
+                            <option value="Cuma">Cuma</option>
+                            <option value="Cumartesi">Cumartesi</option>
+                            <option value="Pazar">Pazar</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Derslik / Salon
+                        </label>
+                        <input 
+                            type="text" 
+                            name="classroom" 
+                            value="Derslik 1"
+                            placeholder="Örn: Sınıf 1, Lab"
+                            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                        >
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Ders veya Etüt Adı <span class="text-rose-500">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        name="lesson_name" 
+                        required 
+                        placeholder="Örn: Matematik TYT Soru Çözümü"
+                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                    >
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Başlangıç Saati <span class="text-rose-500">*</span>
+                        </label>
+                        <input 
+                            type="time" 
+                            name="start_time" 
+                            value="17:00"
+                            required
+                            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none font-mono"
+                        >
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Bitiş Saati <span class="text-rose-500">*</span>
+                        </label>
+                        <input 
+                            type="time" 
+                            name="end_time" 
+                            value="18:30"
+                            required
+                            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none font-mono"
+                        >
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Eğitmen / Öğretmen
+                    </label>
+                    <input 
+                        type="text" 
+                        name="teacher_name" 
+                        placeholder="Örn: Ahmet Hoca"
+                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                    >
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Not / Açıklama
+                    </label>
+                    <input 
+                        type="text" 
+                        name="note" 
+                        placeholder="Örn: Deneme föyleri getirilecek"
+                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                    >
+                </div>
+
+                <div class="pt-2 flex gap-2">
+                    <button type="button" onclick="toggleModal('addScheduleModal')" class="w-1/2 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all">
+                        Vazgeç
+                    </button>
+                    <button type="submit" class="w-1/2 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+                        Dersi Kaydet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function toggleModal(id) {
+            const el = document.getElementById(id);
+            el.classList.toggle('hidden');
+        }
+    </script>
+
+    <footer class="bg-white border-t border-slate-200 py-4 px-4 text-center text-xs text-slate-500">
+        © 2026 {{ course_name }} • Haftalık Ders Programı Yönetimi
+    </footer>
+
+</body>
+</html>

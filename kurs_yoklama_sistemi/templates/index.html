@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ course_name }} - Katılım ve Mazeret Bildirimi</title>
+    <!-- TailwindCSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        /* Uçuşan Lanet / Alev Kıvılcımı Parçacıkları */
+        .ember-container {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .ember {
+            position: absolute;
+            bottom: -20px;
+            width: 4px;
+            height: 4px;
+            background: #ff5722;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #ff9800, 0 0 20px #ff5722, 0 0 30px #f44336;
+            animation: floatUp linear infinite;
+            opacity: 0;
+        }
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) translateX(0) scale(1);
+                opacity: 0.8;
+            }
+            50% {
+                transform: translateY(-50vh) translateX(30px) scale(1.4);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-105vh) translateX(-20px) scale(0.2);
+                opacity: 0;
+            }
+        }
+        /* Domain Expansion Lanet Sisi */
+        .domain-fog {
+            background: radial-gradient(circle at 70% 40%, rgba(255, 69, 0, 0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 20% 80%, rgba(138, 43, 226, 0.06) 0%, transparent 40%);
+            animation: pulseAura 8s ease-in-out infinite alternate;
+        }
+        @keyframes pulseAura {
+            0% { opacity: 0.3; transform: scale(1); }
+            100% { opacity: 0.8; transform: scale(1.05); }
+        }
+
+    </style>
+</head>
+<body class="min-h-screen text-slate-100 antialiased flex flex-col justify-between relative bg-black font-sans selection:bg-orange-500 selection:text-white overflow-x-hidden">
+
+    <!-- Dinamik Renkli Arka Plan Katmanı -->
+    <div id="jjkBgLayer" class="fixed inset-0 z-0 pointer-events-none transition-all duration-700" style="background: radial-gradient(ellipse at 70% 30%, #78350f 0%, #451a03 50%, #000000 100%);"></div>
+    
+    <!-- Ekstra Derin Siyah Karartma & Sinematik Vignette Katmanı -->
+    <div id="darkVignetteLayer" class="fixed inset-0 z-0 pointer-events-none transition-all duration-500" 
+         style="background: radial-gradient(ellipse at 65% 45%, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.65) 60%, rgba(0,0,0,0.95) 100%), linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 40%, transparent 100%);">
+    </div>
+
+    <!-- Üst ve Alt Sinematik Karartma Çubukları (IMAX Atmosferi) -->
+    <div class="fixed top-0 left-0 right-0 h-28 bg-gradient-to-b from-black via-black/70 to-transparent z-0 pointer-events-none"></div>
+    <div class="fixed bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black via-black/80 to-transparent z-0 pointer-events-none"></div>
+
+    <!-- Domain Sisi & Aura Katmanı -->
+    <div id="domainFogLayer" class="fixed inset-0 z-0 pointer-events-none domain-fog"></div>
+
+    <!-- Canlı Uçuşan Alev & Lanetli Enerji Kıvılcımları (Ember Particles) -->
+    <div id="emberContainer" class="ember-container">
+        <div class="ember" style="left: 15%; animation-duration: 6s; animation-delay: 0s; width: 5px; height: 5px;"></div>
+        <div class="ember" style="left: 28%; animation-duration: 8s; animation-delay: 2s; width: 3px; height: 3px; background: #ff9800;"></div>
+        <div class="ember" style="left: 42%; animation-duration: 5s; animation-delay: 1s; width: 6px; height: 6px; background: #f44336;"></div>
+        <div class="ember" style="left: 58%; animation-duration: 7s; animation-delay: 3s; width: 4px; height: 4px; background: #ff5722;"></div>
+        <div class="ember" style="left: 72%; animation-duration: 9s; animation-delay: 0.5s; width: 5px; height: 5px; background: #ffc107;"></div>
+        <div class="ember" style="left: 85%; animation-duration: 6.5s; animation-delay: 2.5s; width: 3px; height: 3px; background: #ff3d00;"></div>
+        <div class="ember" style="left: 93%; animation-duration: 7.5s; animation-delay: 1.5s; width: 4px; height: 4px; background: #ff6e40;"></div>
+    </div>
+
+
+
+    <!-- Üst Başlık & Gezinme Barı -->
+    <header class="relative z-10 bg-black border-b border-orange-500/20 text-white py-4 px-4 sm:px-8 shadow-2xl">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+            
+            <div class="flex items-center gap-3">
+                <div id="headerLogo" class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-orange-600 to-red-600 text-white flex items-center justify-center font-bold text-lg shadow-lg shadow-orange-950/60 border border-orange-400/30">
+                    <i class="fa-solid fa-fire"></i>
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-300 to-red-500">
+                        {{ course_name }}
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium hidden sm:block">
+                        Kurs Katılım ve Mazeret Bildirim Portalı
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 sm:gap-3">
+
+                <!-- Haftalık Ders Programı Butonu -->
+                <button type="button" onclick="toggleModal('scheduleModal')" class="inline-flex items-center gap-1.5 text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-300 px-3 py-1.5 rounded-full border border-sky-500/40 shadow-lg transition-all" title="Haftalık Ders ve Etüt Programı">
+                    <i class="fa-solid fa-calendar-week text-sky-400"></i>
+                    <span class="hidden sm:inline">Ders Programı</span>
+                </button>
+
+                <!-- Arka Plan Renk Seçici Butonu -->
+                <button type="button" onclick="toggleModal('themeSelectorModal')" class="inline-flex items-center gap-1.5 text-xs font-bold bg-slate-900 hover:bg-slate-800 text-amber-300 px-3 py-1.5 rounded-full border border-amber-500/40 shadow-lg transition-all">
+                    <i class="fa-solid fa-palette text-amber-400"></i>
+                    <span class="hidden sm:inline">Renkler</span>
+                </button>
+
+                <!-- Tam Ekran Arka Plan Modu -->
+                <button type="button" onclick="toggleWallpaperFocus()" class="inline-flex items-center gap-1.5 text-xs font-bold bg-slate-900 hover:bg-slate-800 text-slate-300 px-3 py-1.5 rounded-full border border-slate-700 transition-all" title="Arka Planı Gör">
+                    <i class="fa-solid fa-eye" id="eyeIcon"></i>
+                    <span id="eyeText" class="hidden sm:inline">Arka Plan</span>
+                </button>
+
+                {% if current_student %}
+                    <!-- Giriş Yapmış Öğrenci Butonu & Panel Linki -->
+                    <div class="inline-flex items-center gap-1.5 bg-slate-900 border border-emerald-500/40 px-2.5 sm:px-3 py-1.5 rounded-full shadow-lg">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <a href="{{ url_for('student_dashboard') }}" class="text-xs font-bold text-emerald-300 hover:text-emerald-100 flex items-center gap-1.5 transition-colors" title="Öğrenci Karnem & Panel">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                            <span class="max-w-[100px] sm:max-w-none truncate">{{ current_student.name }}</span>
+                            <span class="bg-emerald-600/50 text-[10px] text-emerald-200 px-1.5 py-0.5 rounded font-semibold hidden md:inline">Panelim</span>
+                        </a>
+                        <a href="{{ url_for('logout') }}" class="text-[11px] font-bold text-red-400 hover:text-red-300 ml-1 hover:underline" title="Oturumu Kapat">
+                            Çıkış
+                        </a>
+                    </div>
+                {% elif current_user %}
+                    <!-- Giriş Yapmış Öğretmen/Yönetici -->
+                    <div class="inline-flex items-center gap-2 bg-slate-900 border border-indigo-500/40 px-3 py-1.5 rounded-full shadow-lg">
+                        <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+                        <a href="{{ url_for('admin_dashboard') }}" class="text-xs font-bold text-indigo-300 hover:text-indigo-200">
+                            <i class="fa-solid fa-chalkboard-user mr-1"></i>{{ current_user.full_name }}
+                        </a>
+                        <a href="{{ url_for('logout') }}" class="text-[11px] font-bold text-red-400 hover:text-red-300 ml-1 hover:underline" title="Oturumu Kapat">
+                            Çıkış
+                        </a>
+                    </div>
+                {% else %}
+                    <!-- Giriş Yapılmadı: Giriş & Kayıt Butonları -->
+                    <a href="{{ url_for('login', type='student') }}" class="inline-flex items-center gap-1.5 text-xs font-bold bg-slate-900 hover:bg-slate-800 text-orange-400 hover:text-orange-300 px-3 py-1.5 rounded-full border border-orange-500/30 transition-all shadow-md">
+                        <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                        <span>Giriş Yap</span>
+                    </a>
+                    <a href="{{ url_for('register') }}" class="inline-flex items-center gap-1.5 text-xs font-bold bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white px-3.5 py-1.5 rounded-full shadow-lg shadow-orange-950/50 transition-all border border-orange-400/30">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <span>Kayıt Ol</span>
+                    </a>
+                {% endif %}
+            </div>
+
+        </div>
+    </header>
+
+    <!-- Ana İçerik Alanı (Bölünmüş Izgara: Form Solda, Arka Plan Karakteri Sağda Tamamen Açık!) -->
+    <main class="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 my-auto">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <!-- SOL KOLON: Form ve Bildirim Alanı -->
+            <div id="formContainer" class="lg:col-span-6 xl:col-span-5 space-y-4 transition-all duration-300">
+                
+                <!-- Canlı Duyurular & Öğretmen Duyuru Ekleme -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between px-1">
+                        <span class="text-xs font-bold text-orange-400/90 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-bullhorn text-orange-500"></i>
+                            Kurs Duyuruları
+                        </span>
+
+                        <!-- Öğretmen Duyuru Butonu -->
+                        {% if current_user %}
+                            <button type="button" onclick="toggleModal('quickAnnouncementModal')" class="text-[11px] font-bold text-orange-300 bg-orange-950 hover:bg-orange-900 px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1 border border-orange-500/40 shadow-xs">
+                                <i class="fa-solid fa-plus text-[10px]"></i>
+                                <span>Duyuru Ekle ({{ current_user.full_name }})</span>
+                            </button>
+                        {% else %}
+                            <button type="button" onclick="toggleModal('quickAnnouncementModal')" class="text-[11px] font-semibold text-slate-300 hover:text-orange-300 bg-slate-900 hover:bg-slate-800 px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1 border border-slate-700">
+                                <i class="fa-solid fa-lock text-[10px]"></i>
+                                <span>Öğretmen Duyurusu</span>
+                            </button>
+                        {% endif %}
+                    </div>
+
+                    {% if announcements %}
+                        <div class="space-y-2.5">
+                            {% for a in announcements %}
+                                <div class="bg-slate-900 rounded-2xl p-4 shadow-2xl border-l-4 
+                                    {% if a.badge == 'Önemli' %}border-red-500 bg-slate-900
+                                    {% elif a.badge == 'Sınav' %}border-amber-500 bg-slate-900
+                                    {% else %}border-orange-500 bg-slate-900{% endif %} flex items-start gap-3 border border-slate-800">
+                                    <div class="text-lg mt-0.5">
+                                        {% if a.badge == 'Önemli' %}🔥
+                                        {% elif a.badge == 'Sınav' %}📝
+                                        {% else %}📢{% endif %}
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-2 mb-0.5">
+                                            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full 
+                                                {% if a.badge == 'Önemli' %}bg-red-500/20 text-red-400 border border-red-500/30
+                                                {% elif a.badge == 'Sınav' %}bg-amber-500/20 text-amber-400 border border-amber-500/30
+                                                {% else %}bg-orange-500/20 text-orange-400 border border-orange-500/30{% endif %}">
+                                                {{ a.badge }}
+                                            </span>
+                                            <h3 class="font-bold text-white text-xs">{{ a.title }}</h3>
+                                        </div>
+                                        <p class="text-xs text-slate-300 leading-relaxed">{{ a.content }}</p>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Flash Mesajları -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="mb-4 p-4 rounded-xl text-sm font-medium shadow-2xl {% if category == 'danger' %}bg-red-950 text-red-200 border border-red-800{% elif category == 'warning' %}bg-amber-950 text-amber-200 border border-amber-800{% else %}bg-emerald-950 text-emerald-200 border border-emerald-800{% endif %} flex items-center gap-2">
+                                <i class="fa-solid fa-circle-info"></i>
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Form Kartı (Koyu Siyah Cam Efektli & Kenara Yerleştirilmiş) -->
+                <div class="bg-slate-950 rounded-3xl shadow-2xl border border-orange-500/30 p-5 sm:p-7 space-y-5">
+                    
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-800/80">
+                        <div>
+                            <h2 class="text-base font-black text-white flex items-center gap-2">
+                                <i class="fa-solid fa-clipboard-user text-orange-500"></i>
+                                Yoklama Bildirimi
+                            </h2>
+                            <p class="text-xs text-slate-400">7/24 kesintisiz mazeret ve durum iletme</p>
+                        </div>
+                        <span class="text-xs font-bold text-orange-400 bg-orange-950/80 border border-orange-500/30 px-2.5 py-1 rounded-full">
+                            7/24 Açık
+                        </span>
+                    </div>
+
+                    <form action="{{ url_for('submit') }}" method="POST" id="attendanceForm" class="space-y-5">
+                        
+                        <!-- 1. Yoklama Tarihi & Hızlı Seçim -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+                                <i class="fa-regular fa-calendar-check text-orange-500 mr-1"></i> Tarih Seçimi
+                            </label>
+                            
+                            <!-- Hızlı Tarih Butonları -->
+                            <div class="grid grid-cols-2 gap-2 mb-2">
+                                <button type="button" onclick="setQuickDate(0)" class="py-2 px-3 text-xs font-bold rounded-xl border border-orange-500/40 bg-orange-950/60 text-orange-300 hover:bg-orange-900 transition-colors flex items-center justify-center gap-1.5">
+                                    <i class="fa-solid fa-clock"></i> Bugün
+                                </button>
+                                <button type="button" onclick="setQuickDate(1)" class="py-2 px-3 text-xs font-bold rounded-xl border border-slate-700 bg-black/70 text-slate-300 hover:bg-slate-900 transition-colors flex items-center justify-center gap-1.5">
+                                    <i class="fa-solid fa-calendar-plus"></i> Yarın
+                                </button>
+                            </div>
+
+                            <input 
+                                type="date" 
+                                name="target_date" 
+                                id="target_date" 
+                                value="{{ default_date }}" 
+                                required
+                                onchange="updateDateDisplay(this.value)"
+                                class="w-full px-3.5 py-2.5 bg-black/90 border border-slate-700 rounded-xl font-medium text-white focus:ring-2 focus:ring-orange-500 outline-none text-sm"
+                            >
+                            <p class="text-xs text-slate-400 mt-1 flex items-center gap-1.5">
+                                <i class="fa-solid fa-circle-info text-orange-400"></i>
+                                Seçili Gün: <strong id="date_display_text" class="text-orange-300 font-bold">{{ default_date_display }}</strong>
+                            </p>
+                        </div>
+
+                        <!-- 2. Öğrenci Adı Soyadı -->
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                                    <i class="fa-solid fa-user-graduate text-orange-500 mr-1"></i> Öğrenci Adı <span class="text-red-500">*</span>
+                                </label>
+                                {% if not current_student %}
+                                    <div class="flex items-center gap-2">
+                                        <a href="{{ url_for('login', type='student') }}" class="text-[11px] font-bold text-amber-400 hover:text-amber-300 flex items-center gap-1 bg-amber-950/70 border border-amber-500/30 px-2 py-0.5 rounded-lg transition-colors">
+                                            <i class="fa-solid fa-arrow-right-to-bracket text-[10px]"></i>
+                                            <span>Giriş Yap</span>
+                                        </a>
+                                        <a href="{{ url_for('register', type='student') }}" class="text-[11px] font-bold text-orange-400 hover:text-orange-300 flex items-center gap-1 bg-orange-950/70 border border-orange-500/30 px-2 py-0.5 rounded-lg transition-colors">
+                                            <i class="fa-solid fa-user-plus text-[10px]"></i>
+                                            <span>Kayıt Ol</span>
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            {% if current_student %}
+                                <!-- Giriş yapmış öğrenci otomatik tanımlama kartı -->
+                                <div class="bg-gradient-to-r from-emerald-950/90 to-slate-950 p-3.5 rounded-xl border border-emerald-500/50 shadow-lg flex items-center justify-between gap-3">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-base shadow-md">
+                                            <i class="fa-solid fa-user-check"></i>
+                                        </div>
+                                        <div>
+                                            <div class="flex items-center gap-2">
+                                                <h4 class="font-extrabold text-sm text-white">{{ current_student.name }}</h4>
+                                                {% if current_student.student_no %}
+                                                    <span class="text-[10px] font-bold bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-md border border-emerald-500/40">No: {{ current_student.student_no }}</span>
+                                                {% endif %}
+                                            </div>
+                                            <p class="text-[11px] text-emerald-400 font-medium">✓ Öğrenci girişi aktif • Bildirim sizin adınıza kaydedilecek</p>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="student_name" value="{{ current_student.name }}">
+                                </div>
+                            {% elif registered_students %}
+                                <select 
+                                    name="student_name" 
+                                    id="student_select" 
+                                    onchange="toggleCustomNameInput(this.value)"
+                                    class="w-full px-3.5 py-2.5 bg-black/90 border border-slate-700 rounded-xl font-medium text-white focus:ring-2 focus:ring-orange-500 outline-none mb-2 text-sm"
+                                >
+                                    <option value="" class="bg-black">-- İsminizi Seçiniz --</option>
+                                    {% for student in registered_students %}
+                                        <option value="{{ student.name }}" class="bg-black">{{ student.name }} {% if student.student_no %}(No: {{ student.student_no }}){% endif %}</option>
+                                    {% endfor %}
+                                    <option value="DIGER" class="bg-black">✍️ Listede Yokum / Kendim Yazacağım</option>
+                                </select>
+
+                                <div id="custom_name_div" class="hidden mt-2 space-y-2">
+                                    <input 
+                                        type="text" 
+                                        name="custom_name" 
+                                        id="custom_name" 
+                                        placeholder="Adınızı ve Soyadınızı yazınız..."
+                                        class="w-full px-3.5 py-2.5 bg-black/90 border border-slate-700 rounded-xl font-medium text-white placeholder-slate-500 focus:ring-2 focus:ring-orange-500 outline-none text-sm"
+                                    >
+                                    <p class="text-xs text-orange-300 bg-orange-950/60 p-2 rounded-xl border border-orange-500/30 flex items-center justify-between">
+                                        <span>Kalıcı isim için:</span>
+                                        <a href="{{ url_for('register', type='student') }}" class="font-bold underline hover:text-orange-200">Kaydolun →</a>
+                                    </p>
+                                </div>
+                            {% else %}
+                                <input 
+                                    type="text" 
+                                    name="student_name" 
+                                    id="student_name" 
+                                    required
+                                    placeholder="Örn: Kerem Yılmaz"
+                                    class="w-full px-3.5 py-2.5 bg-black/90 border border-slate-700 rounded-xl font-medium text-white placeholder-slate-500 focus:ring-2 focus:ring-orange-500 outline-none text-sm"
+                                >
+                            {% endif %}
+                        </div>
+
+                        <!-- 3. Katılım Durumu Seçimi -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+                                <i class="fa-solid fa-list-check text-orange-500 mr-1"></i> Durumunuz <span class="text-red-500">*</span>
+                            </label>
+                            
+                            <div class="grid grid-cols-3 gap-2">
+                                
+                                <!-- Geliyorum -->
+                                <label class="relative flex flex-col items-center justify-center p-3 rounded-xl border cursor-pointer transition-all border-slate-800 bg-black/80 hover:border-emerald-500 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-950/70 group text-center shadow-lg">
+                                    <input type="radio" name="status" value="geliyorum" required class="sr-only" onchange="updateExcuseRequirement('geliyorum')">
+                                    <div class="w-8 h-8 rounded-full bg-emerald-900/50 text-emerald-400 flex items-center justify-center text-sm mb-1 group-hover:scale-110 transition-transform border border-emerald-500/30">
+                                        <i class="fa-solid fa-check"></i>
+                                    </div>
+                                    <span class="font-bold text-white text-xs">Geliyorum</span>
+                                </label>
+
+                                <!-- Gelemeyeceğim -->
+                                <label class="relative flex flex-col items-center justify-center p-3 rounded-xl border cursor-pointer transition-all border-slate-800 bg-black/80 hover:border-red-500 has-[:checked]:border-red-500 has-[:checked]:bg-red-950/70 group text-center shadow-lg">
+                                    <input type="radio" name="status" value="gelemiyorum" required class="sr-only" onchange="updateExcuseRequirement('gelemiyorum')">
+                                    <div class="w-8 h-8 rounded-full bg-red-900/50 text-red-400 flex items-center justify-center text-sm mb-1 group-hover:scale-110 transition-transform border border-red-500/30">
+                                        <i class="fa-solid fa-xmark"></i>
+                                    </div>
+                                    <span class="font-bold text-white text-xs">Yokum</span>
+                                </label>
+
+                                <!-- Geç Kalacağım -->
+                                <label class="relative flex flex-col items-center justify-center p-3 rounded-xl border cursor-pointer transition-all border-slate-800 bg-black/80 hover:border-amber-500 has-[:checked]:border-amber-500 has-[:checked]:bg-amber-950/70 group text-center shadow-lg">
+                                    <input type="radio" name="status" value="gec_kalacagim" required class="sr-only" onchange="updateExcuseRequirement('gec_kalacagim')">
+                                    <div class="w-8 h-8 rounded-full bg-amber-900/50 text-amber-400 flex items-center justify-center text-sm mb-1 group-hover:scale-110 transition-transform border border-amber-500/30">
+                                        <i class="fa-solid fa-clock"></i>
+                                    </div>
+                                    <span class="font-bold text-white text-xs">Geç Gelcem</span>
+                                </label>
+
+                            </div>
+                        </div>
+
+                        <!-- 4. Mazeret ve Açıklama Alanı -->
+                        <div id="excuse_container">
+                            <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                                <span><i class="fa-solid fa-pen-to-square text-orange-500 mr-1"></i> Mazeret / Not</span>
+                                <span id="excuse_badge" class="text-[11px] font-medium text-slate-400">İsteğe Bağlı</span>
+                            </label>
+                            <textarea 
+                                name="excuse" 
+                                id="excuse" 
+                                rows="2" 
+                                placeholder="Gelememe veya geç kalma nedeninizi yazabilirsiniz..."
+                                class="w-full px-3.5 py-2.5 bg-black/90 border border-slate-700 rounded-xl font-medium text-white placeholder-slate-500 focus:ring-2 focus:ring-orange-500 outline-none resize-none text-xs"
+                            ></textarea>
+                        </div>
+
+                        <!-- Gönder Butonu (Fuga Flame Style) -->
+                        <div class="pt-1">
+                            <button 
+                                type="submit" 
+                                id="submitBtn"
+                                class="w-full py-3.5 px-4 bg-gradient-to-r from-orange-600 via-red-600 to-rose-600 hover:from-orange-500 hover:to-red-500 text-white font-black text-sm rounded-xl shadow-2xl shadow-orange-950/80 hover:shadow-orange-900/90 transition-all transform active:scale-[0.99] flex items-center justify-center gap-2 border border-orange-400/30"
+                            >
+                                <i class="fa-solid fa-fire"></i>
+                                Yoklama Bildirimini Gönder
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+
+            </div>
+
+            <!-- SAĞ KOLON: Karakterin Tamamen Net Açık Kaldığı Alan -->
+            <div class="hidden lg:flex lg:col-span-6 xl:col-span-7 min-h-[550px] pointer-events-none">
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Alt Bilgi (Footer) & Giriş / Kayıt Butonları -->
+    <footer class="relative z-10 bg-black border-t border-orange-500/20 py-4 px-4 text-center text-xs text-slate-400">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div>
+                © 2026 {{ course_name }} • Yoklama ve Kayıt Portalı
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="{{ url_for('register') }}" class="inline-flex items-center gap-1.5 text-slate-300 hover:text-white font-semibold bg-slate-900 hover:bg-slate-800 px-3 py-1.5 rounded-lg transition-colors border border-slate-700">
+                    <i class="fa-solid fa-user-plus text-orange-400"></i>
+                    Yeni Kayıt
+                </a>
+                <a href="{{ url_for('login') }}" class="inline-flex items-center gap-1.5 text-orange-400 hover:text-orange-300 font-semibold bg-orange-950/80 hover:bg-orange-900 px-3 py-1.5 rounded-lg transition-colors border border-orange-500/30">
+                    <i class="fa-solid fa-lock"></i>
+                    Öğretmen Girişi
+                </a>
+            </div>
+        </div>
+    </footer>
+
+
+
+    <!-- ARKA PLAN RENK SEÇİCİ MODALI -->
+    <div id="themeSelectorModal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-950 border border-orange-500/30 rounded-3xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl text-slate-100 max-h-[90vh] overflow-y-auto">
+            
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-5">
+                <div class="flex items-center gap-2">
+                    <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-600 to-pink-500 text-white flex items-center justify-center font-bold text-sm shadow-md">
+                        <i class="fa-solid fa-palette"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-black text-white">Arka Plan Renk Seçenekleri</h3>
+                        <p class="text-xs text-slate-400">Sitenin genel renk atmosferini ve tonunu seçin</p>
+                    </div>
+                </div>
+                <button type="button" onclick="toggleModal('themeSelectorModal')" class="text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Renk Seçenekleri Izgarası (8 Farklı Renk Atmosferi) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                
+                <!-- 1. Altın Kehribar (Amber Gold) -->
+                <button type="button" onclick="setColorTheme('amber')" class="flex items-center gap-3 p-3 rounded-2xl bg-black/80 hover:bg-slate-900 border-2 border-amber-500/40 hover:border-amber-400 text-left transition-all hover:scale-[1.02] group shadow-lg">
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-amber-600 to-yellow-400 flex items-center justify-center text-lg text-black font-black group-hover:scale-110 transition-transform shadow-md shadow-amber-950/60">
+                        <i class="fa-solid fa-fire text-amber-950"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                            <h4 class="font-bold text-sm text-white group-hover:text-amber-400 transition-colors">Altın Kehribar</h4>
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_#f59e0b]"></span>
+                        </div>
+                        <p class="text-[11px] text-amber-300/80 truncate">Sıcak Kor & Altın Işıltısı</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-xs text-slate-500 group-hover:text-amber-400"></i>
+                </button>
+
+                <!-- 2. Ateş Kırmızısı (Crimson Flame) -->
+                <button type="button" onclick="setColorTheme('crimson')" class="flex items-center gap-3 p-3 rounded-2xl bg-black/80 hover:bg-slate-900 border-2 border-red-500/40 hover:border-red-400 text-left transition-all hover:scale-[1.02] group shadow-lg">
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-red-700 to-rose-500 flex items-center justify-center text-lg text-white font-black group-hover:scale-110 transition-transform shadow-md shadow-red-950/60">
+                        <i class="fa-solid fa-flame text-white"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                            <h4 class="font-bold text-sm text-white group-hover:text-red-400 transition-colors">Ateş Kırmızısı</h4>
+                            <span class="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_#ef4444]"></span>
+                        </div>
+                        <p class="text-[11px] text-red-300/80 truncate">Derin Yakut & Kor Kırmızı</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-xs text-slate-500 group-hover:text-red-400"></i>
+                </button>
+
+                <!-- 3. Gece Mavisi (Midnight Blue) -->
+                <button type="button" onclick="setColorTheme('blue')" class="flex items-center gap-3 p-3 rounded-2xl bg-black/80 hover:bg-slate-900 border-2 border-cyan-500/40 hover:border-cyan-400 text-left transition-all hover:scale-[1.02] group shadow-lg">
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-blue-700 to-cyan-400 flex items-center justify-center text-lg text-white font-black group-hover:scale-110 transition-transform shadow-md shadow-blue-950/60">
+                        <i class="fa-solid fa-droplet text-white"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                            <h4 class="font-bold text-sm text-white group-hover:text-cyan-400 transition-colors">Gece Mavisi</h4>
+                            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#38bdf8]"></span>
+                        </div>
+                        <p class="text-[11px] text-cyan-300/80 truncate">Derin Okyanus & Siber Safir</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-xs text-slate-500 group-hover:text-cyan-400"></i>
+                </button>
+
+                <!-- 4. Zümrüt Yeşili (Emerald Forest) -->
+                <button type="button" onclick="setColorTheme('emerald')" class="flex items-center gap-3 p-3 rounded-2xl bg-black/80 hover:bg-slate-900 border-2 border-emerald-500/40 hover:border-emerald-400 text-left transition-all hover:scale-[1.02] group shadow-lg">
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-emerald-700 to-green-400 flex items-center justify-center text-lg text-white font-black group-hover:scale-110 transition-transform shadow-md shadow-emerald-950/60">
+                        <i class="fa-solid fa-leaf text-white"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                            <h4 class="font-bold text-sm text-white group-hover:text-emerald-400 transition-colors">Zümrüt Yeşili</h4>
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981]"></span>
+                        </div>
+                        <p class="text-[11px] text-emerald-300/80 truncate">Canlı Doğa & Neon Zümrüt</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-xs text-slate-500 group-hover:text-emerald-400"></i>
+                </button>
+
+                <!-- 5. Kozmik Mor (Cosmic Purple) -->
+                <button type="button" onclick="setColorTheme('purple')" class="flex items-center gap-3 p-3 rounded-2xl bg-black/80 hover:bg-slate-900 border-2 border-purple-500/40 hover:border-purple-400 text-left transition-all hover:scale-[1.02] group shadow-lg">
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-purple-800 to-violet-500 flex items-center justify-center text-lg text-white font-black group-hover:scale-110 transition-transform shadow-md shadow-purple-950/60">
+                        <i class="fa-solid fa-gem text-white"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                            <h4 class="font-bold text-sm text-white group-hover:text-purple-400 transition-colors">Kozmik Mor</h4>
+                            <span class="w-2.5 h-2.5 rounded-full bg-purple-400 shadow-[0_0_8px_#c084fc]"></span>
+                        </div>
+                        <p class="text-[11px] text-purple-300/80 truncate">Ametist & Galaktik Derinlik</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-xs text-slate-500 group-hover:text-purple-400"></i>
+                </button>
+
+                <!-- 6. Neon Fuşya (Neon Fuchsia) -->
+                <button type="button" onclick="setColorTheme('fuchsia')" class="flex items-center gap-3 p-3 rounded-2xl bg-black/80 hover:bg-slate-900 border-2 border-pink-500/40 hover:border-pink-400 text-left transition-all hover:scale-[1.02] group shadow-lg">
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-pink-700 to-rose-400 flex items-center justify-center text-lg text-white font-black group-hover:scale-110 transition-transform shadow-md shadow-pink-950/60">
+                        <i class="fa-solid fa-bolt text-white"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                            <h4 class="font-bold text-sm text-white group-hover:text-pink-400 transition-colors">Neon Fuşya</h4>
+                            <span class="w-2.5 h-2.5 rounded-full bg-pink-400 shadow-[0_0_8px_#ec4899]"></span>
+                        </div>
+                        <p class="text-[11px] text-pink-300/80 truncate">Siber Pembe & Canlı Fuşya</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-xs text-slate-500 group-hover:text-pink-400"></i>
+                </button>
+
+                <!-- 7. Buzul Turkuaz (Glacier Cyan) -->
+                <button type="button" onclick="setColorTheme('teal')" class="flex items-center gap-3 p-3 rounded-2xl bg-black/80 hover:bg-slate-900 border-2 border-teal-500/40 hover:border-teal-400 text-left transition-all hover:scale-[1.02] group shadow-lg">
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-cyan-800 to-teal-400 flex items-center justify-center text-lg text-white font-black group-hover:scale-110 transition-transform shadow-md shadow-teal-950/60">
+                        <i class="fa-solid fa-snowflake text-white"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                            <h4 class="font-bold text-sm text-white group-hover:text-teal-400 transition-colors">Buzul Turkuaz</h4>
+                            <span class="w-2.5 h-2.5 rounded-full bg-teal-400 shadow-[0_0_8px_#06b6d4]"></span>
+                        </div>
+                        <p class="text-[11px] text-teal-300/80 truncate">Kristal Arktik & Buz Mavisi</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-xs text-slate-500 group-hover:text-teal-400"></i>
+                </button>
+
+                <!-- 8. Obsidyen Siyah (Midnight Black) -->
+                <button type="button" onclick="setColorTheme('dark')" class="flex items-center gap-3 p-3 rounded-2xl bg-black/80 hover:bg-slate-900 border-2 border-slate-600/40 hover:border-slate-400 text-left transition-all hover:scale-[1.02] group shadow-lg">
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-slate-800 to-slate-600 flex items-center justify-center text-lg text-white font-black group-hover:scale-110 transition-transform shadow-md shadow-slate-950/60">
+                        <i class="fa-solid fa-moon text-slate-200"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                            <h4 class="font-bold text-sm text-white group-hover:text-slate-300 transition-colors">Obsidyen Siyah</h4>
+                            <span class="w-2.5 h-2.5 rounded-full bg-slate-400 shadow-[0_0_8px_#94a3b8]"></span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 truncate">Ultra Derin Karanlık & Çelik</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-xs text-slate-500 group-hover:text-slate-300"></i>
+                </button>
+
+            </div>
+
+            <!-- Ekstra Atmosfer & Siyahlık Ayarları -->
+            <div class="p-4 rounded-2xl bg-black/90 border border-slate-800 space-y-3 mb-5">
+                <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-orange-400"></i>
+                    Atmosfer ve Karartma Ayarları
+                </h4>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                    <button type="button" onclick="toggleDarkness('deep')" class="py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 font-semibold text-center transition-all">
+                        🌑 Ekstra Derin Siyah
+                    </button>
+                    <button type="button" onclick="toggleDarkness('cinematic')" class="py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-orange-500/40 text-orange-300 font-semibold text-center transition-all">
+                        🎬 Sinematik Mod
+                    </button>
+                    <button type="button" onclick="toggleEmbers()" class="py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-amber-300 font-semibold text-center transition-all col-span-2 sm:col-span-1">
+                        ✨ Kıvılcım: <span id="emberStateText">Açık</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="text-center pt-1">
+                <button type="button" onclick="toggleModal('themeSelectorModal')" class="py-2.5 px-6 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 font-bold text-xs rounded-xl transition-all">
+                    Kapat
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Hızlı Öğretmen Duyurusu Modalı -->
+    <div id="quickAnnouncementModal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-950 border border-orange-500/30 rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl text-slate-100">
+            
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-xl bg-orange-950/80 border border-orange-500/40 text-orange-400 flex items-center justify-center font-bold text-sm">
+                        <i class="fa-solid fa-bullhorn"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-black text-white">Öğretmen Duyuru Paneli</h3>
+                        <p class="text-[11px] text-slate-400">Tüm öğrencilerin göreceği canlı duyuru</p>
+                    </div>
+                </div>
+                <button type="button" onclick="toggleModal('quickAnnouncementModal')" class="text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            {% if current_user %}
+                <form action="{{ url_for('quick_add_announcement') }}" method="POST" class="space-y-4">
+                    <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 flex items-center gap-2.5 text-xs">
+                        <i class="fa-solid fa-chalkboard-user text-orange-400 text-base"></i>
+                        <div>
+                            <span class="font-bold block text-white">{{ current_user.full_name }}</span>
+                            <span class="text-[11px] text-orange-400 font-medium">Branş: {{ current_user.subject }}</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                            Duyuru Başlığı <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            name="title" 
+                            required 
+                            placeholder="Örn: Yarınki Matematik Dersi Hakkında"
+                            class="w-full px-3 py-2.5 bg-black border border-slate-700 rounded-xl text-xs font-medium text-white focus:ring-2 focus:ring-orange-500 outline-none"
+                        >
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                            Duyuru Türü / Rozet
+                        </label>
+                        <select name="badge" class="w-full px-3 py-2 bg-black border border-slate-700 rounded-xl text-xs font-medium text-white focus:ring-2 focus:ring-orange-500 outline-none">
+                            <option value="Önemli">🔴 Önemli</option>
+                            <option value="Duyuru" selected>📢 Genel Duyuru</option>
+                            <option value="Sınav">📝 Sınav / Deneme</option>
+                            <option value="Tatil">🌴 Tatil / İptal</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                            Duyuru Metni <span class="text-red-500">*</span>
+                        </label>
+                        <textarea 
+                            name="content" 
+                            rows="3" 
+                            required
+                            placeholder="Duyurunuzu buraya yazınız..."
+                            class="w-full px-3 py-2 bg-black border border-slate-700 rounded-xl text-xs font-medium text-white focus:ring-2 focus:ring-orange-500 outline-none resize-none"
+                        ></textarea>
+                    </div>
+
+                    <div class="flex gap-2 pt-1">
+                        <button type="button" onclick="toggleModal('quickAnnouncementModal')" class="w-1/2 py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-slate-300 font-bold text-xs rounded-xl transition-all border border-slate-800">
+                            Vazgeç
+                        </button>
+                        <button type="submit" class="w-1/2 py-2.5 px-3 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-paper-plane"></i>
+                            Yayınla
+                        </button>
+                    </div>
+                </form>
+            {% else %}
+                <div class="text-center py-4 space-y-4">
+                    <div class="w-12 h-12 rounded-2xl bg-orange-950/80 border border-orange-500/30 text-orange-400 flex items-center justify-center text-xl mx-auto">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-black text-white text-sm">Öğretmen Girişi Gerekli</h4>
+                        <p class="text-xs text-slate-400 mt-1">Duyuru ekleyebilmek ve öğrencilere duyuru yayınlayabilmek için öğretmen veya yönetici hesabınızla giriş yapmalısınız.</p>
+                    </div>
+
+                    <div class="pt-2 flex flex-col gap-2">
+                        <a href="{{ url_for('login') }}" class="w-full py-3 px-4 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                            Öğretmen / Yönetici Girişi Yap
+                        </a>
+                        <a href="{{ url_for('register', type='teacher') }}" class="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-slate-300 font-bold text-xs rounded-xl transition-all border border-slate-700 flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-chalkboard-user text-orange-400"></i>
+                            <span>Yeni Öğretmen Hesabı Aç</span>
+                        </a>
+                        <a href="{{ url_for('register', type='admin') }}" class="w-full py-2.5 px-4 bg-purple-950/80 hover:bg-purple-900 text-purple-300 font-bold text-xs rounded-xl transition-all border border-purple-500/40 flex items-center justify-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-crown text-purple-400"></i>
+                            <span>Yeni Yönetici / Admin Hesabı Aç</span>
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+    <!-- Haftalık Ders & Etüt Programı Modalı -->
+    <div id="scheduleModal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-950 border border-sky-500/30 rounded-3xl max-w-2xl w-full p-6 sm:p-7 shadow-2xl text-slate-100 max-h-[90vh] flex flex-col">
+            
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4 flex-shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-sky-950 border border-sky-500/40 text-sky-400 flex items-center justify-center font-bold text-base">
+                        <i class="fa-solid fa-calendar-week"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-black text-white">Haftalık Ders & Etüt Programı</h3>
+                        <p class="text-[11px] text-slate-400">Kurs güncel ders saatleri ve öğretmen bilgileri</p>
+                    </div>
+                </div>
+                <button type="button" onclick="toggleModal('scheduleModal')" class="text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="overflow-y-auto space-y-3 flex-grow pr-1">
+                {% if schedules %}
+                    {% set days = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"] %}
+                    {% for day in days %}
+                        {% set day_courses = schedules | selectattr("day_of_week", "equalto", day) | list %}
+                        {% if day_courses %}
+                            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5">
+                                <div class="text-xs font-black uppercase tracking-wider text-sky-400 flex items-center gap-1.5 mb-2 pb-1.5 border-b border-slate-800">
+                                    <i class="fa-regular fa-calendar-check text-[11px]"></i>
+                                    {{ day }}
+                                </div>
+                                <div class="space-y-2">
+                                    {% for c in day_courses %}
+                                        <div class="flex items-center justify-between bg-black/60 p-2.5 rounded-xl border border-slate-800/80">
+                                            <div class="flex items-center gap-2.5">
+                                                <div class="w-8 h-8 rounded-lg bg-sky-500/10 text-sky-400 border border-sky-500/20 flex items-center justify-center font-bold text-xs">
+                                                    <i class="fa-solid fa-book-open"></i>
+                                                </div>
+                                                <div>
+                                                    <span class="text-xs font-bold text-white block">{{ c.lesson_name or c.subject }}</span>
+                                                    <span class="text-[11px] text-slate-400">
+                                                        <i class="fa-solid fa-chalkboard-user text-[10px] text-sky-400 mr-1"></i>{{ c.teacher_name or 'Genel Eğitmen' }}
+                                                        {% if c.classroom %} • <i class="fa-solid fa-location-dot text-[10px] text-slate-500"></i> {{ c.classroom }}{% endif %}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <span class="text-xs font-bold text-sky-300 bg-sky-950 px-2.5 py-1 rounded-lg border border-sky-800/40">
+                                                {{ c.start_time }} - {{ c.end_time }}
+                                            </span>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-8 text-slate-500 text-xs">
+                        <i class="fa-regular fa-calendar-xmark text-3xl mb-2 text-slate-600 block"></i>
+                        Henüz haftalık ders programı eklenmemiş.
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="pt-4 border-t border-slate-800 flex justify-end flex-shrink-0 mt-3">
+                <button type="button" onclick="toggleModal('scheduleModal')" class="py-2 px-5 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 font-bold text-xs rounded-xl transition-all">
+                    Kapat
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- JavaScript Mantığı: Arka Plan Renk Motoru & Temalar -->
+    <script>
+        // Canlı Arka Plan Renk Temaları
+        const COLOR_THEMES = {
+            'amber': {
+                name: 'Altın Kehribar',
+                gradient: 'radial-gradient(ellipse at 70% 30%, #78350f 0%, #451a03 50%, #000000 100%)',
+                emberColor: '#f59e0b'
+            },
+            'crimson': {
+                name: 'Ateş Kırmızısı',
+                gradient: 'radial-gradient(ellipse at 70% 30%, #7f1d1d 0%, #450a0a 50%, #000000 100%)',
+                emberColor: '#ef4444'
+            },
+            'blue': {
+                name: 'Gece Mavisi',
+                gradient: 'radial-gradient(ellipse at 70% 30%, #0369a1 0%, #082f49 50%, #000000 100%)',
+                emberColor: '#38bdf8'
+            },
+            'emerald': {
+                name: 'Zümrüt Yeşili',
+                gradient: 'radial-gradient(ellipse at 70% 30%, #065f46 0%, #022c22 50%, #000000 100%)',
+                emberColor: '#10b981'
+            },
+            'purple': {
+                name: 'Kozmik Mor',
+                gradient: 'radial-gradient(ellipse at 70% 30%, #581c87 0%, #2e1065 50%, #000000 100%)',
+                emberColor: '#c084fc'
+            },
+            'fuchsia': {
+                name: 'Neon Fuşya',
+                gradient: 'radial-gradient(ellipse at 70% 30%, #831843 0%, #500724 50%, #000000 100%)',
+                emberColor: '#ec4899'
+            },
+            'teal': {
+                name: 'Buzul Turkuaz',
+                gradient: 'radial-gradient(ellipse at 70% 30%, #155e75 0%, #083344 50%, #000000 100%)',
+                emberColor: '#06b6d4'
+            },
+            'dark': {
+                name: 'Obsidyen Siyah',
+                gradient: 'radial-gradient(ellipse at 70% 30%, #1e293b 0%, #090d16 50%, #000000 100%)',
+                emberColor: '#94a3b8'
+            }
+        };
+
+        // Geriye dönük uyumluluk eşlemesi
+        const LEGACY_MAP = {
+            'sukuna': 'amber',
+            'itadori': 'crimson',
+            'gojo': 'blue',
+            'toji': 'emerald',
+            'yuta': 'purple',
+            'mahoraga': 'teal'
+        };
+
+        function setColorTheme(themeKey) {
+            if (LEGACY_MAP[themeKey]) themeKey = LEGACY_MAP[themeKey];
+            const theme = COLOR_THEMES[themeKey] || COLOR_THEMES['amber'];
+
+            const bgLayer = document.getElementById('jjkBgLayer');
+            if (bgLayer) {
+                bgLayer.style.background = theme.gradient;
+            }
+
+            // Kıvılcım renklerini temaya göre güncelle
+            document.querySelectorAll('.ember').forEach(e => {
+                e.style.background = theme.emberColor;
+                e.style.boxShadow = `0 0 10px ${theme.emberColor}, 0 0 20px ${theme.emberColor}`;
+            });
+
+            localStorage.setItem('user_color_theme', themeKey);
+            localStorage.setItem('user_jjk_theme', themeKey);
+            const modal = document.getElementById('themeSelectorModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function setJJKTheme(themeKey) {
+            setColorTheme(themeKey);
+        }
+
+        // Karartma Seviyesi
+        function toggleDarkness(mode) {
+            const vignette = document.getElementById('darkVignetteLayer');
+            if (mode === 'deep') {
+                vignette.style.background = 'radial-gradient(ellipse at 65% 45%, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.85) 60%, rgba(0,0,0,0.98) 100%), linear-gradient(to right, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 40%, rgba(0,0,0,0.5) 100%)';
+            } else {
+                vignette.style.background = 'radial-gradient(ellipse at 65% 45%, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.65) 60%, rgba(0,0,0,0.95) 100%), linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 40%, transparent 100%)';
+            }
+            localStorage.setItem('darkness_mode', mode);
+        }
+
+        // Kıvılcımları Aç/Kapat
+        let embersOn = true;
+        function toggleEmbers() {
+            embersOn = !embersOn;
+            const container = document.getElementById('emberContainer');
+            const txt = document.getElementById('emberStateText');
+            if (embersOn) {
+                container.classList.remove('hidden');
+                txt.textContent = 'Açık';
+            } else {
+                container.classList.add('hidden');
+                txt.textContent = 'Kapalı';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            let savedTheme = localStorage.getItem('user_color_theme') || localStorage.getItem('user_jjk_theme') || 'amber';
+            if (LEGACY_MAP[savedTheme]) savedTheme = LEGACY_MAP[savedTheme];
+            if (!COLOR_THEMES[savedTheme]) savedTheme = 'amber';
+            setColorTheme(savedTheme);
+            const savedDark = localStorage.getItem('darkness_mode');
+            if (savedDark) {
+                toggleDarkness(savedDark);
+            }
+        });
+
+        function setQuickDate(daysOffset) {
+            const date = new Date();
+            date.setDate(date.getDate() + daysOffset);
+            
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            
+            const dateStr = `${year}-${month}-${day}`;
+            document.getElementById('target_date').value = dateStr;
+            updateDateDisplay(dateStr);
+        }
+
+        const TR_MONTHS = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+        const TR_DAYS = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
+
+        function updateDateDisplay(dateStr) {
+            if (!dateStr) return;
+            const parts = dateStr.split('-');
+            const d = new Date(parts[0], parts[1] - 1, parts[2]);
+            const dayName = TR_DAYS[d.getDay()];
+            const formatted = `${d.getDate()} ${TR_MONTHS[d.getMonth()]} ${d.getFullYear()} ${dayName}`;
+            document.getElementById('date_display_text').textContent = formatted;
+        }
+
+        function toggleCustomNameInput(val) {
+            const customDiv = document.getElementById('custom_name_div');
+            const customInput = document.getElementById('custom_name');
+            if (val === 'DIGER') {
+                customDiv.classList.remove('hidden');
+                customInput.required = true;
+                customInput.focus();
+            } else {
+                customDiv.classList.add('hidden');
+                customInput.required = false;
+            }
+        }
+
+        function updateExcuseRequirement(status) {
+            const excuseBadge = document.getElementById('excuse_badge');
+            const excuseInput = document.getElementById('excuse');
+            if (status === 'gelemiyorum') {
+                excuseBadge.textContent = 'Mazeret belirtiniz';
+                excuseBadge.className = 'text-[11px] font-semibold text-red-400 bg-red-950/70 border border-red-500/30 px-2 py-0.5 rounded';
+                excuseInput.placeholder = 'Kursa gelememe nedeninizi kısaca belirtiniz...';
+            } else if (status === 'gec_kalacagim') {
+                excuseBadge.textContent = 'Geliş saatinizi yazınız';
+                excuseBadge.className = 'text-[11px] font-semibold text-amber-400 bg-amber-950/70 border border-amber-500/30 px-2 py-0.5 rounded';
+                excuseInput.placeholder = 'Örn: Saat 09:30 gibi gelebileceğim...';
+            } else {
+                excuseBadge.textContent = 'İsteğe Bağlı';
+                excuseBadge.className = 'text-[11px] font-medium text-slate-400';
+                excuseInput.placeholder = 'Eklemek istediğiniz bir not varsa yazabilirsiniz...';
+            }
+        }
+
+        function toggleModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.toggle('hidden');
+        }
+
+        // Wallpaper Focus Modu
+        let isFocusMode = false;
+        function toggleWallpaperFocus() {
+            const formContainer = document.getElementById('formContainer');
+            const eyeIcon = document.getElementById('eyeIcon');
+            const eyeText = document.getElementById('eyeText');
+
+            isFocusMode = !isFocusMode;
+            if (isFocusMode) {
+                formContainer.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+                eyeIcon.className = 'fa-solid fa-eye-slash';
+                if (eyeText) eyeText.textContent = 'Formu Göster';
+            } else {
+                formContainer.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
+                eyeIcon.className = 'fa-solid fa-eye';
+                if (eyeText) eyeText.textContent = 'Resmi Gör';
+            }
+        }
+    </script>
+
+</body>
+</html>

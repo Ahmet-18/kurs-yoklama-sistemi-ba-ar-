@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hızlı Yoklama QR Kodu - {{ course_name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- QRCode.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body class="bg-slate-900 min-h-screen text-white antialiased flex flex-col justify-between p-4 sm:p-8">
+
+    <!-- Üst Bar -->
+    <div class="max-w-4xl mx-auto w-full flex items-center justify-between">
+        <a href="{{ url_for('admin_dashboard') }}" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 font-bold text-xs rounded-xl transition-colors text-slate-300">
+            <i class="fa-solid fa-arrow-left mr-1"></i> Panale Dön
+        </a>
+        <div class="text-right">
+            <span class="text-xs font-semibold text-emerald-400 bg-emerald-950/80 px-3 py-1 rounded-full border border-emerald-800">
+                ● Canlı Yoklama Ekranı
+            </span>
+        </div>
+    </div>
+
+    <!-- QR Kod Odak Kartı -->
+    <div class="max-w-md w-full mx-auto bg-slate-800 border border-slate-700 rounded-3xl p-8 text-center shadow-2xl my-8">
+        
+        <h1 class="text-2xl font-black tracking-tight text-white mb-1">{{ course_name }}</h1>
+        <p class="text-xs text-indigo-300 font-medium mb-6">Telefonunuzun kamerasıyla QR kodu okutarak yoklama ve mazeretinizi iletiniz.</p>
+
+        <!-- QR Kod Kutusu -->
+        <div class="bg-white p-6 rounded-2xl inline-block shadow-inner mb-6">
+            <div id="qrcode" class="mx-auto"></div>
+        </div>
+
+        <div class="bg-slate-900 p-4 rounded-xl border border-slate-700 text-xs text-slate-300 font-mono break-all">
+            {{ mobile_url }}
+        </div>
+
+        <p class="text-[11px] text-slate-400 mt-4">
+            <i class="fa-solid fa-wifi text-indigo-400 mr-1"></i> Kurs Wi-Fi ağına bağlı telefonlar doğrudan giriş yapabilir.
+        </p>
+
+    </div>
+
+    <div class="text-center text-xs text-slate-500">
+        © 2026 {{ course_name }} • Temassız Hızlı Yoklama Sistemi
+    </div>
+
+    <script>
+        // QR Kodu Oluştur
+        const qrContainer = document.getElementById("qrcode");
+        new QRCode(qrContainer, {
+            text: "{{ mobile_url }}",
+            width: 220,
+            height: 220,
+            colorDark : "#0F172A",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.env
+.venv/
+venv/
+ENV/
+
+# SQLite Veritabanı (İsteğe bağlı - database.py otomatik oluşturur)
+*.db
+*.sqlite3
+
+# Test & Geçici Dosyalar
+temp_test/
+*.tmp
+
+# IDE & Editör
+.vscode/
+.idea/
+*.swp
+*.swo

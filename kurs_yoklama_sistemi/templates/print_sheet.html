@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resmi Sınıf Yoklama Çizelgesi - {{ selected_date_display }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            @page {
+                size: A4 portrait;
+                margin: 1.5cm;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-900 p-4 sm:p-8">
+
+    <!-- Yazdır ve Geri Dön Butonları (Yazdırmada Gizlenir) -->
+    <div class="max-w-4xl mx-auto mb-6 flex items-center justify-between no-print">
+        <a href="{{ url_for('admin_dashboard', date=selected_date) }}" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 font-bold text-xs rounded-xl transition-colors">
+            ← Panale Geri Dön
+        </a>
+        <button onclick="window.print()" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition-colors flex items-center gap-2">
+            🖨️ Sayfayı Yazdır / PDF Olarak Kaydet
+        </button>
+    </div>
+
+    <!-- A4 Kağıdı Görünümü -->
+    <div class="max-w-4xl mx-auto bg-white p-8 sm:p-12 rounded-2xl shadow-sm border border-slate-200">
+        
+        <!-- Resmi Başlık -->
+        <div class="text-center border-b-2 border-slate-900 pb-4 mb-6">
+            <h1 class="text-xl font-black uppercase tracking-wider">{{ course_name }}</h1>
+            <h2 class="text-base font-bold text-slate-700 mt-1">GÜNLÜK SINIF VE ETÜT YOKLAMA ÇİZELGESİ</h2>
+            <div class="flex items-center justify-between text-xs font-semibold text-slate-600 mt-4 px-2">
+                <span><strong>Tarih:</strong> {{ selected_date_display }}</span>
+                <span><strong>Toplam Öğrenci:</strong> {{ students_data|length }}</span>
+            </div>
+        </div>
+
+        <!-- Yoklama Tablosu -->
+        <table class="w-full border-collapse border border-slate-800 text-xs">
+            <thead>
+                <tr class="bg-slate-100 text-slate-900">
+                    <th class="border border-slate-800 py-2.5 px-3 w-12 text-center">Sıra</th>
+                    <th class="border border-slate-800 py-2.5 px-3 text-left">Öğrenci Adı Soyadı</th>
+                    <th class="border border-slate-800 py-2.5 px-3 w-20 text-center">No</th>
+                    <th class="border border-slate-800 py-2.5 px-3 w-28 text-center">Durum</th>
+                    <th class="border border-slate-800 py-2.5 px-3 text-left">Mazeret / Açıklama</th>
+                    <th class="border border-slate-800 py-2.5 px-3 w-28 text-center">İmza</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if students_data %}
+                    {% for st in students_data %}
+                        <tr>
+                            <td class="border border-slate-800 py-2 px-3 text-center font-bold">{{ loop.index }}</td>
+                            <td class="border border-slate-800 py-2 px-3 font-semibold">{{ st.name }}</td>
+                            <td class="border border-slate-800 py-2 px-3 text-center">{{ st.student_no or '-' }}</td>
+                            <td class="border border-slate-800 py-2 px-3 text-center font-bold">
+                                {% if st.current_status == 'geldi' %}
+                                    [ VAR ]
+                                {% elif st.current_status == 'gelmedi' %}
+                                    [ YOK ]
+                                {% elif st.current_status == 'mazeretli' %}
+                                    [ MAZERET ]
+                                {% elif st.current_status == 'gec_geldi' %}
+                                    [ GEÇ ]
+                                {% else %}
+                                    [  ]
+                                {% endif %}
+                            </td>
+                            <td class="border border-slate-800 py-2 px-3 italic text-[11px]">{{ st.current_note or '-' }}</td>
+                            <td class="border border-slate-800 py-2 px-3"></td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="border border-slate-800 py-8 text-center text-slate-500">Kayıtlı öğrenci bulunamadı.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+
+        <!-- İmzalar Alt Alanı -->
+        <div class="grid grid-cols-2 gap-8 mt-12 pt-8 text-center text-xs font-bold">
+            <div>
+                <p>Nöbetçi Öğretmen / Eğitmen</p>
+                <p class="mt-12 text-slate-400 font-normal">İmza</p>
+            </div>
+            <div>
+                <p>Kurs / Kurum Yöneticisi</p>
+                <p class="mt-12 text-slate-400 font-normal">İmza / Mühür</p>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

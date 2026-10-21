@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giriş Yap - {{ course_name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="min-h-screen text-slate-100 antialiased flex flex-col justify-between relative bg-slate-950 font-sans selection:bg-orange-500 selection:text-white">
+
+    <!-- Dinamik Renkli Arka Plan -->
+    <div id="jjkBgLayer" class="fixed inset-0 z-0 pointer-events-none transition-all duration-700" style="background: radial-gradient(ellipse at 70% 30%, #78350f 0%, #451a03 50%, #000000 100%);"></div>
+    <div class="fixed inset-0 z-0 pointer-events-none bg-gradient-to-b from-black/50 via-black/30 to-black/70"></div>
+
+    <div class="relative z-10 flex-grow flex items-center justify-center p-4">
+        <div class="max-w-md w-full bg-slate-900 rounded-3xl shadow-2xl border border-orange-500/20 p-6 sm:p-8">
+            
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-orange-600 to-red-600 text-white flex items-center justify-center text-2xl mx-auto mb-3 shadow-xl shadow-orange-950/60 border border-orange-400/30">
+                    <i class="fa-solid fa-right-to-bracket" id="loginHeaderIcon"></i>
+                </div>
+                <h1 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-300 to-red-500" id="loginHeaderTitle">
+                    Sisteme Giriş Yap
+                </h1>
+                <p class="text-xs text-slate-400 mt-1" id="loginHeaderDesc">
+                    Öğrenci, öğretmen veya yönetici hesabınızla giriş yapınız
+                </p>
+            </div>
+
+            <!-- Giriş Türü Sekmeleri (Tabs) -->
+            <div class="flex items-center p-1 bg-slate-800 border border-slate-700 rounded-2xl mb-6 text-xs font-bold">
+                <button 
+                    type="button" 
+                    id="tabStudentBtn" 
+                    onclick="switchLoginTab('student')" 
+                    class="flex-1 py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 bg-gradient-to-r from-orange-600 to-red-600 text-white font-extrabold shadow-sm"
+                >
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>Öğrenci Girişi</span>
+                </button>
+
+                <button 
+                    type="button" 
+                    id="tabTeacherBtn" 
+                    onclick="switchLoginTab('teacher')" 
+                    class="flex-1 py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 text-slate-400 hover:text-white"
+                >
+                    <i class="fa-solid fa-chalkboard-user"></i>
+                    <span>Öğretmen / Yönetici</span>
+                </button>
+            </div>
+
+            <!-- Flash Mesajları -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="mb-4 p-3 rounded-xl text-xs font-semibold {% if category == 'danger' %}bg-red-950 text-red-200 border border-red-800{% elif category == 'warning' %}bg-amber-950 text-amber-200 border border-amber-800{% else %}bg-emerald-950 text-emerald-200 border border-emerald-800{% endif %} flex items-center gap-2">
+                            <i class="fa-solid fa-circle-exclamation text-orange-400"></i>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- 1. ÖĞRENCİ GİRİŞ FORMU -->
+            <div id="studentLoginSection">
+                <form action="{{ url_for('login') }}" method="POST" class="space-y-4" id="studentLoginForm">
+                    <input type="hidden" name="login_type" value="student">
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                            Öğrenci No veya Ad Soyad <span class="text-orange-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            name="student_identifier" 
+                            id="studentIdentifierInput"
+                            required 
+                            autofocus
+                            placeholder="Örn: 104 veya Ahmet Yılmaz"
+                            class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-sm font-medium text-white placeholder-slate-500 focus:bg-slate-800 focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                        >
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                                Şifre <span class="text-orange-500">*</span>
+                            </label>
+                            <span class="text-[11px] text-orange-400/90 font-medium">Varsayılan: <code>123456</code></span>
+                        </div>
+                        <input 
+                            type="password" 
+                            name="password" 
+                            required 
+                            placeholder="Şifrenizi giriniz..."
+                            class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-sm font-medium text-white placeholder-slate-500 focus:bg-slate-800 focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                        >
+                        <p class="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
+                            <i class="fa-solid fa-wand-magic-sparkles text-orange-400"></i>
+                            Büyük/küçük harf veya bitişik/ayrık yazabilirsiniz.
+                        </p>
+                    </div>
+
+                    <button 
+                        type="submit" 
+                        class="w-full py-3.5 px-4 bg-gradient-to-r from-orange-600 via-red-600 to-rose-600 hover:from-orange-500 hover:to-red-500 text-white font-black text-sm rounded-xl shadow-xl shadow-orange-950/60 hover:shadow-orange-900/80 transition-all border border-orange-400/30 flex items-center justify-center gap-2"
+                    >
+                        <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                        <span>Öğrenci Girişi Yap</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- 2. ÖĞRETMEN & YÖNETİCİ GİRİŞ FORMU -->
+            <div id="teacherLoginSection" class="hidden">
+                <form action="{{ url_for('login') }}" method="POST" class="space-y-4" id="teacherLoginForm">
+                    <input type="hidden" name="login_type" value="teacher">
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                            Kullanıcı Adı <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            name="username" 
+                            id="teacherUsernameInput"
+                            placeholder="Örn: admin veya ogretmen"
+                            class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-sm font-medium text-white placeholder-slate-500 focus:bg-slate-800 focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                        >
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                            Şifre <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="password" 
+                            name="password" 
+                            id="teacherPasswordInput"
+                            placeholder="Şifrenizi giriniz..."
+                            class="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-sm font-medium text-white placeholder-slate-500 focus:bg-slate-800 focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                        >
+                        <p class="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
+                            <i class="fa-solid fa-wand-magic-sparkles text-indigo-400"></i>
+                            Büyük/küçük harf veya bitişik/ayrık yazsanız da giriş yapabilirsiniz.
+                        </p>
+                    </div>
+
+                    <button 
+                        type="submit" 
+                        class="w-full py-3.5 px-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black text-sm rounded-xl shadow-xl shadow-indigo-950/60 transition-all border border-indigo-400/30 flex items-center justify-center gap-2"
+                    >
+                        <i class="fa-solid fa-user-shield"></i>
+                        <span>Yönetici / Öğretmen Girişi</span>
+                    </button>
+
+                    <!-- Hızlı Giriş İpuçları -->
+                    <div class="pt-2">
+                        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 text-center">Hızlı Giriş Hesapları</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" onclick="fillTeacherLogin('admin', 'admin123')" class="py-2 px-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-1 border border-slate-700">
+                                <i class="fa-solid fa-user-shield text-orange-400"></i> Boş İşler Müdürü (admin)
+                            </button>
+                            <button type="button" onclick="fillTeacherLogin('ogretmen', '123456')" class="py-2 px-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-1 border border-slate-700">
+                                <i class="fa-solid fa-chalkboard-user text-emerald-400"></i> Öğretmen (ogretmen)
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <script>
+                function switchLoginTab(type) {
+                    const studentSec = document.getElementById('studentLoginSection');
+                    const teacherSec = document.getElementById('teacherLoginSection');
+                    const studentBtn = document.getElementById('tabStudentBtn');
+                    const teacherBtn = document.getElementById('tabTeacherBtn');
+                    const headerIcon = document.getElementById('loginHeaderIcon');
+                    const headerTitle = document.getElementById('loginHeaderTitle');
+                    const headerDesc = document.getElementById('loginHeaderDesc');
+
+                    if (type === 'student') {
+                        studentSec.classList.remove('hidden');
+                        teacherSec.classList.add('hidden');
+                        studentBtn.className = 'flex-1 py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 bg-gradient-to-r from-orange-600 to-red-600 text-white font-extrabold shadow-sm';
+                        teacherBtn.className = 'flex-1 py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 text-slate-400 hover:text-white font-bold';
+                        headerIcon.className = 'fa-solid fa-graduation-cap';
+                        headerTitle.textContent = 'Öğrenci Girişi';
+                        headerDesc.textContent = 'Öğrenci numaranız veya adınızla giriş yapınız';
+                        const stInput = document.getElementById('studentIdentifierInput');
+                        if (stInput) stInput.focus();
+                    } else {
+                        studentSec.classList.add('hidden');
+                        teacherSec.classList.remove('hidden');
+                        teacherBtn.className = 'flex-1 py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-extrabold shadow-sm';
+                        studentBtn.className = 'flex-1 py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 text-slate-400 hover:text-white font-bold';
+                        headerIcon.className = 'fa-solid fa-user-shield';
+                        headerTitle.textContent = 'Öğretmen & Yönetici Girişi';
+                        headerDesc.textContent = 'Yönetim ve yoklama paneline giriş yapınız';
+                        const tInput = document.getElementById('teacherUsernameInput');
+                        if (tInput) tInput.focus();
+                    }
+                }
+
+                function fillTeacherLogin(u, p) {
+                    document.getElementById('teacherUsernameInput').value = u;
+                    document.getElementById('teacherPasswordInput').value = p;
+                    document.getElementById('teacherLoginForm').submit();
+                }
+
+                // URL parametresinde ?type=teacher varsa öğretmen sekmesini aç
+                document.addEventListener('DOMContentLoaded', function() {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    if (urlParams.get('type') === 'teacher') {
+                        switchLoginTab('teacher');
+                    } else {
+                        switchLoginTab('student');
+                    }
+
+                    // Kayıtlı Renk Teması
+                    const COLOR_THEMES = {
+                        'amber': 'radial-gradient(ellipse at 70% 30%, #78350f 0%, #451a03 50%, #000000 100%)',
+                        'crimson': 'radial-gradient(ellipse at 70% 30%, #7f1d1d 0%, #450a0a 50%, #000000 100%)',
+                        'blue': 'radial-gradient(ellipse at 70% 30%, #0369a1 0%, #082f49 50%, #000000 100%)',
+                        'emerald': 'radial-gradient(ellipse at 70% 30%, #065f46 0%, #022c22 50%, #000000 100%)',
+                        'purple': 'radial-gradient(ellipse at 70% 30%, #581c87 0%, #2e1065 50%, #000000 100%)',
+                        'fuchsia': 'radial-gradient(ellipse at 70% 30%, #831843 0%, #500724 50%, #000000 100%)',
+                        'teal': 'radial-gradient(ellipse at 70% 30%, #155e75 0%, #083344 50%, #000000 100%)',
+                        'dark': 'radial-gradient(ellipse at 70% 30%, #1e293b 0%, #090d16 50%, #000000 100%)'
+                    };
+                    const LEGACY_MAP = {
+                        'sukuna': 'amber', 'itadori': 'crimson', 'gojo': 'blue', 'toji': 'emerald', 'yuta': 'purple', 'mahoraga': 'teal'
+                    };
+                    let saved = localStorage.getItem('user_color_theme') || localStorage.getItem('user_jjk_theme');
+                    if (LEGACY_MAP[saved]) saved = LEGACY_MAP[saved];
+                    if (saved && COLOR_THEMES[saved]) {
+                        document.getElementById('jjkBgLayer').style.background = COLOR_THEMES[saved];
+                    }
+                });
+            </script>
+
+            <div class="mt-6 pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                <a href="{{ url_for('index') }}" class="text-slate-400 hover:text-orange-300 font-semibold transition-colors">
+                    <i class="fa-solid fa-arrow-left mr-1"></i> Yoklama Sayfası
+                </a>
+                <div class="flex items-center gap-2">
+                    <a href="{{ url_for('register', type='admin') }}" class="text-purple-300 hover:text-white font-bold bg-purple-950/80 hover:bg-purple-900 border border-purple-500/30 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5" title="Yeni Yetkili Admin Hesabı Oluştur">
+                        <i class="fa-solid fa-crown text-[11px] text-purple-400"></i>
+                        <span>Admin Kayıt</span>
+                    </a>
+                    <a href="{{ url_for('register') }}" class="text-orange-400 hover:text-orange-300 font-bold bg-orange-950/80 hover:bg-orange-900 border border-orange-500/30 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
+                        <i class="fa-solid fa-user-plus text-[11px]"></i>
+                        <span>Kayıt Ol</span>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <footer class="bg-slate-950 border-t border-orange-500/20 py-4 px-4 text-center text-xs text-slate-400">
+        © 2026 {{ course_name }} • Yoklama ve Giriş Sistemi
+    </footer>
+
+</body>
+</html>

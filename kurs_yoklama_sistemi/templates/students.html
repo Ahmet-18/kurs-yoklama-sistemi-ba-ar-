@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Öğrenci Listesi Yönetimi - Pazar Yoklama Sistemi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 antialiased flex flex-col justify-between">
+
+    <!-- Üst Gezinme Çubuğu -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <a href="{{ url_for('admin_dashboard') }}" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+                <div>
+                    <h1 class="text-base sm:text-lg font-black text-slate-900 leading-tight">Kayıtlı Öğrenci Listesi</h1>
+                    <p class="text-xs text-slate-500">Sınıf mevcudunu ve öğrencileri yönetin</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <a href="{{ url_for('admin_accounts') }}" class="text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-lg transition-colors border border-indigo-100">
+                    <i class="fa-solid fa-key mr-1 text-indigo-600"></i> Hesaplar & Şifreler
+                </a>
+                <a href="{{ url_for('take_attendance') }}" class="text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-clipboard-check"></i> Canlı Yoklama Al
+                </a>
+                <a href="{{ url_for('admin_dashboard') }}" class="text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-lg transition-colors">
+                    <i class="fa-solid fa-chart-pie mr-1"></i> Panel
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Ana İçerik -->
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 py-8 flex-grow w-full space-y-6">
+
+        <!-- Flash Mesajları -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="p-4 rounded-xl text-sm font-medium shadow-sm {% if category == 'danger' %}bg-rose-50 text-rose-700 border border-rose-200{% elif category == 'warning' %}bg-amber-50 text-amber-700 border border-amber-200{% else %}bg-emerald-50 text-emerald-700 border border-emerald-200{% endif %} flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Bilgilendirme Kutusu -->
+        <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 sm:p-5 flex items-start gap-3">
+            <div class="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 mt-0.5">
+                <i class="fa-solid fa-lightbulb text-sm"></i>
+            </div>
+            <div class="text-xs sm:text-sm text-indigo-900 leading-relaxed">
+                <strong>İpucu:</strong> Buraya sınıfınızdaki öğrencileri eklediğinizde, öğrenci bildirim formunda isimleri hazır açılır liste olarak çıkar ve yoklama panelinde <strong>"Henüz Bildirim Yapmayanlar"</strong> listesini anlık olarak takip edebilirsiniz.
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Sol Sütun: Tekli ve Toplu Ekleme Formları -->
+            <div class="space-y-6">
+                <!-- 1. Tek Öğrenci Ekleme -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80">
+                    <h2 class="text-base font-black text-slate-900 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-user-plus text-indigo-600"></i>
+                        Tek Öğrenci Ekle
+                    </h2>
+
+                    <form action="{{ url_for('add_student_route') }}" method="POST" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                Adı ve Soyadı <span class="text-rose-500">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                name="name" 
+                                required 
+                                placeholder="Örn: Ahmet Yılmaz"
+                                class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                            >
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                Öğrenci No
+                            </label>
+                            <input 
+                                type="text" 
+                                name="student_no" 
+                                placeholder="Örn: 101"
+                                class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                            >
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                Telefon No
+                            </label>
+                            <input 
+                                type="tel" 
+                                name="phone" 
+                                placeholder="Örn: 0555 123 4567"
+                                class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                            >
+                        </div>
+
+                        <button 
+                            type="submit" 
+                            class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+                        >
+                            <i class="fa-solid fa-plus"></i>
+                            Ekle
+                        </button>
+                    </form>
+                </div>
+
+                <!-- 2. Toplu Öğrenci Yapıştırma -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80">
+                    <h2 class="text-base font-black text-slate-900 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-paste text-emerald-600"></i>
+                        Toplu Öğrenci Ekle
+                    </h2>
+                    <p class="text-xs text-slate-500 mb-3">Her satıra bir öğrenci gelecek şekilde yapıştırın.</p>
+
+                    <form action="{{ url_for('bulk_add_students_route') }}" method="POST" class="space-y-3">
+                        <textarea 
+                            name="raw_text" 
+                            rows="4" 
+                            required
+                            placeholder="Ahmet Yılmaz&#10;Ayşe Kaya, 102&#10;Mehmet Demir - 105"
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
+                        ></textarea>
+
+                        <button 
+                            type="submit" 
+                            class="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-2"
+                        >
+                            <i class="fa-solid fa-file-import"></i>
+                            Topluca Listeye Ekle
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Kayıtlı Öğrenci Tablosu -->
+            <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden h-fit">
+                <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+                    <h2 class="text-base font-black text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-graduation-cap text-indigo-600"></i>
+                        Kayıtlı Öğrenciler ({{ students|length }})
+                    </h2>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50/75 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                                <th class="py-3 px-4">#</th>
+                                <th class="py-3 px-4">Öğrenci Adı</th>
+                                <th class="py-3 px-4">No</th>
+                                <th class="py-3 px-4">Telefon</th>
+                                <th class="py-3 px-4 text-center">Karne</th>
+                                <th class="py-3 px-4 text-right">Sil</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-sm">
+                            {% if students %}
+                                {% for s in students %}
+                                    <tr class="hover:bg-slate-50/60 transition-colors">
+                                        <td class="py-3 px-4 text-xs text-slate-400 font-medium">{{ loop.index }}</td>
+                                        <td class="py-3 px-4 font-bold text-slate-900">
+                                            <a href="{{ url_for('student_detail', student_name=s.name) }}" class="hover:text-indigo-600 transition-colors flex items-center gap-1.5 group">
+                                                <span>{{ s.name }}</span>
+                                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-300 group-hover:text-indigo-600 transition-colors"></i>
+                                            </a>
+                                        </td>
+                                        <td class="py-3 px-4 text-xs text-slate-600">{{ s.student_no or '-' }}</td>
+                                        <td class="py-3 px-4 text-xs text-slate-600">{{ s.phone or '-' }}</td>
+                                        <td class="py-3 px-4 text-center">
+                                            <a href="{{ url_for('student_detail', student_name=s.name) }}" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors">
+                                                Karne
+                                            </a>
+                                        </td>
+                                        <td class="py-3 px-4 text-right">
+                                            <form action="{{ url_for('delete_student_route', student_id=s.id) }}" method="POST" onsubmit="return confirm('{{ s.name }} isimli öğrenciyi listeden silmek istediğinize emin misiniz?');">
+                                                <button type="submit" class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition-colors">
+                                                    <i class="fa-regular fa-trash-can"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="6" class="py-10 text-center text-slate-400 text-sm">
+                                        <i class="fa-solid fa-user-slash text-3xl mb-2 block text-slate-300"></i>
+                                        Henüz kayıtlı öğrenci eklenmedi.
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-4 px-4 text-center text-xs text-slate-500">
+        © 2026 Kurs Yoklama ve Mazeret Sistemi
+    </footer>
+
+</body>
+</html>

@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canlı Sınıf Yoklaması Al - {{ course_name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 antialiased flex flex-col justify-between">
+
+    <!-- Üst Gezinme Çubuğu -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+            
+            <div class="flex items-center gap-3">
+                <a href="{{ url_for('admin_dashboard', date=selected_date) }}" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+                <div>
+                    <h1 class="text-base sm:text-lg font-black text-slate-900 leading-tight">Canlı Sınıf Yoklaması</h1>
+                    <p class="text-xs text-slate-500 font-medium">{{ course_name }} • Birebir Yoklama Modu</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 sm:gap-3">
+                {% if current_user %}
+                    <div class="hidden sm:flex items-center gap-2 bg-indigo-50 px-3 py-1.5 rounded-xl border border-indigo-100 text-left">
+                        <div class="w-7 h-7 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center">
+                            {{ current_user.full_name[0] if current_user.full_name else 'Ö' }}
+                        </div>
+                        <div class="text-[11px] leading-tight">
+                            <span class="font-bold text-slate-900 block">{{ current_user.full_name }}</span>
+                            <span class="text-indigo-600 font-medium">{{ current_user.subject }}</span>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <a href="{{ url_for('admin_accounts') }}" class="text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-lg transition-colors border border-indigo-100">
+                    <i class="fa-solid fa-key mr-1 text-indigo-600"></i> Hesaplar & Şifreler
+                </a>
+                <a href="{{ url_for('admin_students') }}" class="text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-lg transition-colors">
+                    <i class="fa-solid fa-users mr-1"></i> Öğrenci Listesi
+                </a>
+                <a href="{{ url_for('admin_dashboard', date=selected_date) }}" class="text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-lg transition-colors">
+                    <i class="fa-solid fa-chart-pie mr-1"></i> Panele Dön
+                </a>
+            </div>
+
+        </div>
+    </nav>
+
+    <!-- Ana İçerik -->
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 flex-grow w-full space-y-6">
+
+        <!-- Flash Mesajları -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="p-4 rounded-xl text-sm font-medium shadow-sm {% if category == 'danger' %}bg-rose-50 text-rose-700 border border-rose-200{% elif category == 'warning' %}bg-amber-50 text-amber-700 border border-amber-200{% else %}bg-emerald-50 text-emerald-700 border border-emerald-200{% endif %} flex items-center gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-600 text-lg"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Tarih & Hızlı İşlemler Kartı -->
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+            
+            <!-- Tarih Seçici -->
+            <div class="flex flex-wrap items-center gap-3">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                    <i class="fa-solid fa-calendar-check text-indigo-600"></i>
+                    Yoklama Günü:
+                </span>
+                
+                <form action="{{ url_for('take_attendance') }}" method="GET" class="flex items-center gap-2" id="dateForm">
+                    <input 
+                        type="date" 
+                        name="date" 
+                        id="datePicker" 
+                        value="{{ selected_date }}" 
+                        onchange="this.form.submit()"
+                        class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer"
+                    >
+                </form>
+
+                <!-- Hızlı Günler -->
+                <div class="flex items-center gap-1">
+                    <button type="button" onclick="setQuickDate(0)" class="px-2.5 py-1.5 text-xs font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700">
+                        Bugün
+                    </button>
+                    <button type="button" onclick="setQuickDate(-1)" class="px-2.5 py-1.5 text-xs font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700">
+                        Dün
+                    </button>
+                </div>
+
+                <span class="text-sm font-bold text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100">
+                    {{ selected_date_display }}
+                </span>
+            </div>
+
+            <!-- Hızlı Toplu Butonlar -->
+            <div class="flex flex-wrap items-center gap-2">
+                <button type="button" onclick="markAll('geldi')" class="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold rounded-xl border border-emerald-200 transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-check-double text-emerald-600"></i>
+                    Tümünü Var Say
+                </button>
+                <button type="button" onclick="shareOfficialWhatsApp()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm transition-colors flex items-center gap-1.5" title="WhatsApp üzerinden doğrudan paylaş">
+                    <i class="fa-brands fa-whatsapp text-white"></i>
+                    WhatsApp'ta Paylaş
+                </button>
+                <button type="button" onclick="copyOfficialWhatsApp()" class="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl shadow-sm transition-colors flex items-center gap-1.5" title="WhatsApp metnini panoya kopyala">
+                    <i class="fa-regular fa-copy text-slate-300"></i>
+                    Metni Kopyala
+                </button>
+            </div>
+
+        </div>
+
+        {% if students_data %}
+            <form action="{{ url_for('take_attendance') }}" method="POST" id="mainAttendanceForm">
+                <input type="hidden" name="target_date" value="{{ selected_date }}">
+
+                <!-- Öğrenci Listesi Kartı -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+                    <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                        <div class="text-xs font-bold uppercase tracking-wider text-slate-600">
+                            Öğrenci Listesi ({{ students_data|length }} Kişi)
+                        </div>
+                        <div class="text-xs text-slate-500">
+                            Durum butonlarına tıklayarak yoklamayı anında işaretleyin.
+                        </div>
+                    </div>
+
+                    <div class="divide-y divide-slate-100">
+                        {% for st in students_data %}
+                            <div class="p-4 sm:p-5 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 hover:bg-slate-50/70 transition-colors">
+                                <input type="hidden" name="student_names[]" value="{{ st.name }}">
+
+                                <!-- Sol Taraf: Öğrenci Bilgisi ve Ön Bildirim Durumu -->
+                                <div class="flex-1 min-w-[220px]">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-7 h-7 rounded-full bg-slate-100 text-slate-600 font-bold text-xs flex items-center justify-center">
+                                            {{ loop.index }}
+                                        </span>
+                                        <span class="font-extrabold text-slate-900 text-base">{{ st.name }}</span>
+                                        {% if st.student_no %}
+                                            <span class="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded">No: {{ st.student_no }}</span>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Öğrencinin Önceden Gönderdiği Mazeret / Durum Bildirimi -->
+                                    <div class="mt-2 text-xs">
+                                        {% if st.pre_declaration %}
+                                            {% if st.pre_declaration.status == 'geliyorum' %}
+                                                <span class="inline-flex items-center gap-1 font-medium text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100">
+                                                    <i class="fa-solid fa-user-check text-[11px]"></i>
+                                                    Öğrenci Önceden Bildirdi: <strong>"Geliyorum"</strong>
+                                                </span>
+                                            {% elif st.pre_declaration.status == 'gelemiyorum' %}
+                                                <span class="inline-flex items-center gap-1 font-medium text-rose-700 bg-rose-50 px-2.5 py-1 rounded-md border border-rose-100">
+                                                    <i class="fa-solid fa-user-xmark text-[11px]"></i>
+                                                    Öğrenci Mazeret Bildirdi: <strong>"{{ st.pre_declaration.excuse or 'Gelemeyeceğim' }}"</strong>
+                                                </span>
+                                            {% elif st.pre_declaration.status == 'gec_kalacagim' %}
+                                                <span class="inline-flex items-center gap-1 font-medium text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-100">
+                                                    <i class="fa-solid fa-user-clock text-[11px]"></i>
+                                                    Öğrenci Geç Kalacağını Bildirdi: <strong>"{{ st.pre_declaration.excuse or 'Geç kalacak' }}"</strong>
+                                                </span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-slate-400 font-normal">
+                                                <i class="fa-regular fa-clock text-[10px]"></i> Ön bildirim yapmadı
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Sağ Taraf: Yoklama Durum Butonları & Not -->
+                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                                    
+                                    <!-- 4 Seçenek Buton Grubu -->
+                                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 bg-slate-100 p-1 rounded-xl">
+                                        
+                                        <!-- Geldi (Var) -->
+                                        <label class="status-option flex items-center justify-center gap-1 px-3 py-2 rounded-lg cursor-pointer text-xs font-bold transition-all
+                                            has-[:checked]:bg-emerald-600 has-[:checked]:text-white text-slate-700 hover:bg-slate-200">
+                                            <input type="radio" name="status_{{ st.name }}" value="geldi" {% if st.current_status == 'geldi' %}checked{% endif %} class="sr-only">
+                                            <i class="fa-solid fa-check text-[11px]"></i> Var
+                                        </label>
+
+                                        <!-- Gelmedi (Yok) -->
+                                        <label class="status-option flex items-center justify-center gap-1 px-3 py-2 rounded-lg cursor-pointer text-xs font-bold transition-all
+                                            has-[:checked]:bg-rose-600 has-[:checked]:text-white text-slate-700 hover:bg-slate-200">
+                                            <input type="radio" name="status_{{ st.name }}" value="gelmedi" {% if st.current_status == 'gelmedi' %}checked{% endif %} class="sr-only">
+                                            <i class="fa-solid fa-xmark text-[11px]"></i> Yok
+                                        </label>
+
+                                        <!-- Geç Geldi -->
+                                        <label class="status-option flex items-center justify-center gap-1 px-3 py-2 rounded-lg cursor-pointer text-xs font-bold transition-all
+                                            has-[:checked]:bg-amber-500 has-[:checked]:text-white text-slate-700 hover:bg-slate-200">
+                                            <input type="radio" name="status_{{ st.name }}" value="gec_geldi" {% if st.current_status == 'gec_geldi' %}checked{% endif %} class="sr-only">
+                                            <i class="fa-solid fa-clock text-[11px]"></i> Geç
+                                        </label>
+
+                                        <!-- Mazeretli -->
+                                        <label class="status-option flex items-center justify-center gap-1 px-3 py-2 rounded-lg cursor-pointer text-xs font-bold transition-all
+                                            has-[:checked]:bg-purple-600 has-[:checked]:text-white text-slate-700 hover:bg-slate-200">
+                                            <input type="radio" name="status_{{ st.name }}" value="mazeretli" {% if st.current_status == 'mazeretli' %}checked{% endif %} class="sr-only">
+                                            <i class="fa-solid fa-file-medical text-[11px]"></i> Mazeret
+                                        </label>
+
+                                    </div>
+
+                                    <!-- Öğretmen Not Kutusu & Hızlı Butonlar -->
+                                    <div class="flex items-center gap-1.5 w-full sm:w-auto">
+                                        <div class="w-full sm:w-44">
+                                            <input 
+                                                type="text" 
+                                                name="note_{{ st.name }}" 
+                                                value="{{ st.current_note }}" 
+                                                placeholder="Not / Açıklama..."
+                                                class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                                            >
+                                        </div>
+                                        {% if st.phone %}
+                                            {% set clean_phone = st.phone|replace(' ', '')|replace('-', '')|replace('(', '')|replace(')', '') %}
+                                            <a 
+                                                href="https://wa.me/{{ clean_phone }}?text=Sayin%20Velimiz,%20{{ course_name }}%20kapsaminda%20ogrencimiz%20{{ st.name }}%20icin%20gunun%20yoklama%20bilgilendirmesi." 
+                                                target="_blank" 
+                                                class="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition-colors shadow-xs flex-shrink-0" 
+                                                title="Veliye WhatsApp Bildirimi Gönder"
+                                            >
+                                                <i class="fa-brands fa-whatsapp text-sm"></i>
+                                            </a>
+                                        {% endif %}
+                                        <a 
+                                            href="{{ url_for('student_detail', student_name=st.name) }}" 
+                                            target="_blank" 
+                                            class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors flex-shrink-0" 
+                                            title="Öğrenci Devamsızlık Karnesi"
+                                        >
+                                            <i class="fa-solid fa-chart-line text-xs"></i>
+                                        </a>
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Alt Sabit Kaydetme Çubuğu -->
+                    <div class="p-4 sm:p-5 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <span class="text-xs text-slate-500 font-medium">
+                            <i class="fa-solid fa-shield-halved text-indigo-600 mr-1"></i>
+                            Tüm değişiklikler SQLite veritabanına kalıcı olarak kaydedilir.
+                        </span>
+
+                        <button 
+                            type="submit" 
+                            class="w-full sm:w-auto px-8 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-indigo-200 hover:shadow-xl transition-all flex items-center justify-center gap-2"
+                        >
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            Yoklamayı Kaydet
+                        </button>
+                    </div>
+
+                </div>
+            </form>
+        {% else %}
+            <div class="bg-white rounded-2xl p-12 text-center border border-slate-200 shadow-sm">
+                <i class="fa-solid fa-user-group text-4xl text-slate-300 mb-3 block"></i>
+                <h3 class="text-lg font-bold text-slate-800">Yoklama Alınacak Öğrenci Bulunamadı</h3>
+                <p class="text-xs text-slate-500 mt-1 mb-6">Yoklama alabilmek için önce sisteme öğrenci eklemeniz veya öğrencilerin formdan bildirim yapmış olması gerekir.</p>
+                <a href="{{ url_for('admin_students') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+                    <i class="fa-solid fa-user-plus"></i>
+                    Öğrenci Listesine Öğrenci Ekle
+                </a>
+            </div>
+        {% endif %}
+
+    </main>
+
+    <!-- Toast Bildirimi -->
+    <div id="copyToast" class="fixed bottom-6 right-6 bg-slate-900 text-white text-xs font-bold px-4 py-3 rounded-2xl shadow-xl z-50 flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300">
+        <i class="fa-solid fa-check text-emerald-400 text-base"></i>
+        <span>Resmi sınıf yoklama raporu panoya kopyalandı!</span>
+    </div>
+
+    <script>
+        function setQuickDate(daysOffset) {
+            const date = new Date();
+            date.setDate(date.getDate() + daysOffset);
+            
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            
+            const dateStr = `${year}-${month}-${day}`;
+            document.getElementById('datePicker').value = dateStr;
+            document.getElementById('dateForm').submit();
+        }
+
+        function markAll(status) {
+            const radioInputs = document.querySelectorAll(`input[type="radio"][value="${status}"]`);
+            radioInputs.forEach(radio => {
+                radio.checked = true;
+            });
+        }
+
+        function generateOfficialWhatsAppText() {
+            const dateDisplay = "{{ selected_date_display }}";
+            const courseName = "{{ course_name }}";
+            
+            let present = [];
+            let absent = [];
+            let late = [];
+            let excused = [];
+
+            const rows = document.querySelectorAll('.status-option input:checked');
+            rows.forEach(radio => {
+                const name = radio.name.replace('status_', '');
+                const noteInput = document.querySelector(`input[name="note_${name}"]`);
+                const note = noteInput ? noteInput.value.trim() : '';
+                const noteText = note ? ` (${note})` : '';
+
+                if (radio.value === 'geldi') {
+                    present.push(name);
+                } else if (radio.value === 'gelmedi') {
+                    absent.push(name + noteText);
+                } else if (radio.value === 'gec_geldi') {
+                    late.push(name + noteText);
+                } else if (radio.value === 'mazeretli') {
+                    excused.push(name + noteText);
+                }
+            });
+
+            let text = `📋 *${courseName} - ${dateDisplay} Sınıf Yoklaması*\n`;
+            text += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+            text += `✅ *KATILANLAR (${present.length}):*\n`;
+            if (present.length > 0) {
+                present.forEach((n, i) => { text += `${i + 1}. ${n}\n`; });
+            } else {
+                text += `Yok\n`;
+            }
+            text += `\n`;
+
+            if (absent.length > 0) {
+                text += `❌ *KATILMAYANLAR / GELMEYENLER (${absent.length}):*\n`;
+                absent.forEach((n, i) => { text += `${i + 1}. ${n}\n`; });
+                text += `\n`;
+            }
+
+            if (excused.length > 0) {
+                text += `📝 *MAZERETLİLER (${excused.length}):*\n`;
+                excused.forEach((n, i) => { text += `${i + 1}. ${n}\n`; });
+                text += `\n`;
+            }
+
+            if (late.length > 0) {
+                text += `🟡 *GEÇ GELENLER (${late.length}):*\n`;
+                late.forEach((n, i) => { text += `${i + 1}. ${n}\n`; });
+                text += `\n`;
+            }
+
+            text += `📊 *Genel Durum:* ${present.length} Var | ${absent.length} Yok | ${excused.length} Mazeretli | ${late.length} Geç`;
+            return text;
+        }
+
+        function copyOfficialWhatsApp() {
+            const text = generateOfficialWhatsAppText();
+            navigator.clipboard.writeText(text).then(() => {
+                const toast = document.getElementById('copyToast');
+                toast.classList.remove('translate-y-20', 'opacity-0');
+                setTimeout(() => {
+                    toast.classList.add('translate-y-20', 'opacity-0');
+                }, 3000);
+            }).catch(err => {
+                alert('Panoya kopyalanamadı.');
+            });
+        }
+
+        function shareOfficialWhatsApp() {
+            const text = generateOfficialWhatsAppText();
+            const url = "https://api.whatsapp.com/send?text=" + encodeURIComponent(text);
+            window.open(url, '_blank');
+        }
+    </script>
+
+</body>
+</html>

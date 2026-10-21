@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ student.name }} - Öğrenci Paneli ve Devamsızlık Karnesi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="min-h-screen text-slate-100 antialiased flex flex-col justify-between relative bg-black font-sans selection:bg-orange-500 selection:text-white">
+
+    <!-- Dinamik Koyu Arka Plan Katmanı -->
+    <div class="fixed inset-0 z-0 pointer-events-none" style="background: radial-gradient(ellipse at 70% 30%, #451a03 0%, #1e1b4b 60%, #000000 100%);"></div>
+    <div class="fixed inset-0 z-0 pointer-events-none bg-black/60"></div>
+
+    <!-- Üst Gezinme Çubuğu -->
+    <header class="relative z-10 bg-slate-950 border-b border-orange-500/20 text-white py-4 px-4 sm:px-8 shadow-2xl">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+            
+            <div class="flex items-center gap-3">
+                <a href="{{ url_for('index') }}" class="w-10 h-10 rounded-2xl bg-slate-900 hover:bg-slate-800 text-orange-400 flex items-center justify-center font-bold border border-slate-700 transition-colors">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+                <div>
+                    <h1 class="text-base sm:text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-300 to-red-500">
+                        {{ course_name }}
+                    </h1>
+                    <p class="text-xs text-slate-400">Öğrenci Portalı & Devamsızlık Karnesi</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 sm:gap-3">
+                <a href="{{ url_for('index') }}" class="inline-flex items-center gap-1.5 text-xs font-bold bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white px-3.5 py-2 rounded-xl shadow-lg border border-orange-400/30 transition-all">
+                    <i class="fa-solid fa-clipboard-user"></i>
+                    <span>Yoklama Bildir</span>
+                </a>
+                <a href="{{ url_for('logout') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold bg-rose-950/80 hover:bg-rose-900 text-rose-300 px-3 py-2 rounded-xl border border-rose-500/30 transition-colors">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span class="hidden sm:inline">Çıkış</span>
+                </a>
+            </div>
+
+        </div>
+    </header>
+
+    <!-- Ana İçerik -->
+    <main class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full space-y-6">
+
+        <!-- Flash Mesajları -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="p-4 rounded-2xl text-sm font-semibold shadow-2xl {% if category == 'danger' %}bg-rose-950 text-rose-200 border border-rose-700{% elif category == 'warning' %}bg-amber-950 text-amber-200 border border-amber-700{% else %}bg-emerald-950 text-emerald-200 border border-emerald-700{% endif %} flex items-center gap-2">
+                        <i class="fa-solid fa-circle-check text-base"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Profil ve Hoş Geldin Başlığı Kartı -->
+        <div class="bg-slate-900 rounded-3xl p-6 sm:p-7 shadow-2xl border border-orange-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div class="flex items-center gap-4">
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-orange-600 to-amber-500 text-white flex items-center justify-center font-black text-2xl shadow-xl shadow-orange-950/80 border border-orange-400/40 shrink-0">
+                    {{ student.name[0] }}
+                </div>
+                <div>
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        <h2 class="text-xl sm:text-2xl font-black text-white">{{ student.name }}</h2>
+                        {% if student.student_no %}
+                            <span class="px-2.5 py-0.5 rounded-lg text-xs font-mono font-bold bg-orange-950 text-orange-300 border border-orange-500/40">
+                                No: {{ student.student_no }}
+                            </span>
+                        {% endif %}
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1 flex items-center gap-3">
+                        <span><i class="fa-solid fa-phone text-orange-400 mr-1"></i>{{ student.phone or 'Telefon belirtilmedi' }}</span>
+                        <span>•</span>
+                        <span><i class="fa-regular fa-clock text-orange-400 mr-1"></i>Kayıtlı Öğrenci</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 w-full md:w-auto">
+                <button type="button" onclick="toggleStudentModal('passwordModal')" class="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs border border-slate-700 shadow-md transition-all">
+                    <i class="fa-solid fa-key text-amber-400"></i>
+                    <span>Şifremi Değiştir</span>
+                </button>
+                <a href="{{ url_for('index') }}" class="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white font-extrabold text-xs shadow-lg shadow-orange-950/60 transition-all border border-orange-400/30">
+                    <i class="fa-solid fa-calendar-check"></i>
+                    <span>Yoklama Gönder</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- 4 Özet İstatistik Kartı -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            <!-- Katılım Oranı -->
+            <div class="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-xl relative overflow-hidden">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Devam Oranı</span>
+                    <i class="fa-solid fa-chart-pie text-orange-400 text-lg"></i>
+                </div>
+                <div class="text-2xl sm:text-3xl font-black {% if stats.attendance_rate >= 80 %}text-emerald-400{% elif stats.attendance_rate >= 60 %}text-amber-400{% else %}text-rose-400{% endif %}">
+                    %{{ stats.attendance_rate }}
+                </div>
+                <div class="w-full bg-slate-800 h-2 rounded-full mt-3 overflow-hidden">
+                    <div class="h-full rounded-full {% if stats.attendance_rate >= 80 %}bg-emerald-500{% elif stats.attendance_rate >= 60 %}bg-amber-500{% else %}bg-rose-500{% endif %}" style="width: {{ stats.attendance_rate }}%"></div>
+                </div>
+            </div>
+
+            <!-- Geldiği Günler -->
+            <div class="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-xl">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Katıldığı Dersler</span>
+                    <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+                </div>
+                <div class="text-2xl sm:text-3xl font-black text-white">
+                    {{ stats.present_days }} <span class="text-xs text-slate-400 font-normal">gün</span>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-2">Derslere aktif katılım</p>
+            </div>
+
+            <!-- Devamsızlık -->
+            <div class="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-xl">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold text-rose-400 uppercase tracking-wider">Devamsızlık</span>
+                    <i class="fa-solid fa-circle-xmark text-rose-400 text-lg"></i>
+                </div>
+                <div class="text-2xl sm:text-3xl font-black text-white">
+                    {{ stats.absent_days }} <span class="text-xs text-slate-400 font-normal">gün</span>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-2">Gelinmeyen ders sayısı</p>
+            </div>
+
+            <!-- Geç Gelme / Mazeretli -->
+            <div class="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-xl">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">Geç / Mazeretli</span>
+                    <i class="fa-solid fa-clock text-amber-400 text-lg"></i>
+                </div>
+                <div class="text-2xl sm:text-3xl font-black text-white">
+                    {{ stats.late_days + stats.excused_days }} <span class="text-xs text-slate-400 font-normal">gün</span>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-2">İzinli & geç bildirilenler</p>
+            </div>
+
+        </div>
+
+        <!-- 2 Kolonlu Bölüm: Sol Kolon Haftalık Program, Sağ Kolon Geçmiş Bildirimler & Duyurular -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            <!-- SOL KOLON: Haftalık Ders ve Etüt Programı (lg:col-span-6) -->
+            <div class="lg:col-span-6 space-y-4">
+                <div class="bg-slate-900 rounded-3xl p-6 border border-slate-800 shadow-2xl space-y-4">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                        <h3 class="text-base font-black text-white flex items-center gap-2">
+                            <i class="fa-solid fa-calendar-week text-orange-500"></i>
+                            Haftalık Ders & Etüt Programı
+                        </h3>
+                        <span class="text-[11px] font-bold text-orange-400 bg-orange-950 px-2.5 py-1 rounded-full border border-orange-500/30">
+                            Canlı Program
+                        </span>
+                    </div>
+
+                    {% if schedules %}
+                        <div class="space-y-2.5">
+                            {% for sch in schedules %}
+                                <div class="p-3.5 rounded-2xl bg-black/60 border border-slate-800 hover:border-orange-500/40 transition-all flex items-start justify-between gap-3">
+                                    <div class="flex items-start gap-3">
+                                        <div class="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex flex-col items-center justify-center text-center shrink-0">
+                                            <span class="text-[10px] font-extrabold text-orange-400 uppercase leading-none">{{ sch.day_of_week[:3] }}</span>
+                                        </div>
+                                        <div>
+                                            <div class="flex items-center gap-2">
+                                                <h4 class="font-bold text-sm text-white">{{ sch.lesson_name }}</h4>
+                                                {% if sch.classroom %}
+                                                    <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded-md border border-slate-700">
+                                                        {{ sch.classroom }}
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                            <p class="text-xs text-slate-400 mt-0.5">
+                                                <i class="fa-regular fa-clock text-orange-400 mr-1"></i>{{ sch.start_time }} - {{ sch.end_time }}
+                                                {% if sch.teacher_name %} • <span class="text-slate-300">Öğretmen: {{ sch.teacher_name }}</span>{% endif %}
+                                            </p>
+                                            {% if sch.note %}
+                                                <p class="text-[11px] text-amber-300/80 mt-1 italic">{{ sch.note }}</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <span class="text-[11px] font-mono font-bold text-slate-500 shrink-0">
+                                        {{ sch.day_of_week }}
+                                    </span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="p-6 text-center text-slate-400">
+                            <i class="fa-solid fa-calendar-xmark text-3xl mb-2 text-slate-600"></i>
+                            <p class="text-xs">Henüz ders programı girilmedi.</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Kurs Duyuruları -->
+                {% if announcements %}
+                    <div class="bg-slate-900 rounded-3xl p-6 border border-slate-800 shadow-2xl space-y-3">
+                        <h3 class="text-sm font-black text-white flex items-center gap-2">
+                            <i class="fa-solid fa-bullhorn text-orange-500"></i>
+                            Güncel Kurs Duyuruları
+                        </h3>
+                        <div class="space-y-2">
+                            {% for a in announcements %}
+                                <div class="p-3 rounded-xl bg-black/60 border border-slate-800 text-xs">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                                            {{ a.badge }}
+                                        </span>
+                                        <h4 class="font-bold text-white">{{ a.title }}</h4>
+                                    </div>
+                                    <p class="text-slate-300 leading-relaxed">{{ a.content }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- SAĞ KOLON: Geçmiş Yoklama Karnesi (lg:col-span-6) -->
+            <div class="lg:col-span-6 space-y-4">
+                <div class="bg-slate-900 rounded-3xl p-6 border border-slate-800 shadow-2xl space-y-4">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                        <h3 class="text-base font-black text-white flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-orange-500"></i>
+                            Yoklama Geçmişim ve Kayıtlarım
+                        </h3>
+                        <span class="text-xs text-slate-400">
+                            Toplam {{ stats.total_days }} Kayıt
+                        </span>
+                    </div>
+
+                    {% if stats.declaration_records or stats.class_records %}
+                        <div class="space-y-2.5 max-h-[550px] overflow-y-auto pr-1">
+                            {% for r in (stats.declaration_records if stats.declaration_records else stats.class_records) %}
+                                <div class="p-3.5 rounded-2xl bg-black/60 border border-slate-800 flex items-center justify-between gap-3">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold shrink-0
+                                            {% if r.status in ['geldi', 'geliyorum'] %}bg-emerald-950 text-emerald-400 border border-emerald-700
+                                            {% elif r.status in ['gelmedi', 'gelemiyorum'] %}bg-rose-950 text-rose-400 border border-rose-700
+                                            {% else %}bg-amber-950 text-amber-400 border border-amber-700{% endif %}">
+                                            {% if r.status in ['geldi', 'geliyorum'] %}
+                                                <i class="fa-solid fa-check"></i>
+                                            {% elif r.status in ['gelmedi', 'gelemiyorum'] %}
+                                                <i class="fa-solid fa-xmark"></i>
+                                            {% else %}
+                                                <i class="fa-solid fa-clock"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-bold text-sm text-white font-mono">{{ r.target_date }}</span>
+                                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full
+                                                    {% if r.status in ['geldi', 'geliyorum'] %}bg-emerald-500/20 text-emerald-400
+                                                    {% elif r.status in ['gelmedi', 'gelemiyorum'] %}bg-rose-500/20 text-rose-400
+                                                    {% else %}bg-amber-500/20 text-amber-400{% endif %}">
+                                                    {% if r.status in ['geldi', 'geliyorum'] %}Geldim
+                                                    {% elif r.status in ['gelmedi', 'gelemiyorum'] %}Yoktum
+                                                    {% else %}Geç Geldim{% endif %}
+                                                </span>
+                                            </div>
+                                            {% if r.excuse %}
+                                                <p class="text-xs text-slate-300 mt-0.5">
+                                                    <span class="text-orange-400 font-medium">Mazeret:</span> {{ r.excuse }}
+                                                </p>
+                                            {% elif r.note %}
+                                                <p class="text-xs text-slate-300 mt-0.5">
+                                                    <span class="text-orange-400 font-medium">Öğretmen Notu:</span> {{ r.note }}
+                                                </p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <span class="text-[11px] text-slate-500 font-mono shrink-0">
+                                        {{ r.created_at[:10] if r.created_at else '' }}
+                                    </span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="p-8 text-center text-slate-400">
+                            <i class="fa-solid fa-clipboard-question text-3xl mb-2 text-slate-600"></i>
+                            <p class="text-xs">Henüz yoklama bildirim kaydınız bulunmuyor.</p>
+                            <a href="{{ url_for('index') }}" class="inline-block mt-3 text-xs font-bold text-orange-400 hover:underline">
+                                İlk Bildirimini Gönder →
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- ŞİFRE DEĞİŞTİRME MODALI -->
+    <div id="passwordModal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-orange-500/30 rounded-3xl max-w-sm w-full p-6 shadow-2xl text-slate-100">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-xl bg-orange-600/30 text-orange-400 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-key"></i>
+                    </div>
+                    <h3 class="text-base font-black text-white">Giriş Şifremi Değiştir</h3>
+                </div>
+                <button type="button" onclick="toggleStudentModal('passwordModal')" class="text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form action="{{ url_for('student_change_password') }}" method="POST" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                        Yeni Şifreniz <span class="text-orange-500">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        name="new_password" 
+                        required 
+                        placeholder="Yeni şifrenizi yazınız..."
+                        class="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm font-medium text-white placeholder-slate-500 focus:ring-2 focus:ring-orange-500 outline-none font-mono"
+                    >
+                    <p class="text-[11px] text-slate-400 mt-1">
+                        Şifrenizi unutmayacağınız bir şey belirleyin.
+                    </p>
+                </div>
+
+                <div class="pt-2 flex gap-2">
+                    <button type="button" onclick="toggleStudentModal('passwordModal')" class="w-1/2 py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-xl transition-all">
+                        Vazgeç
+                    </button>
+                    <button type="submit" class="w-1/2 py-2.5 px-4 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+                        Kaydet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function toggleStudentModal(id) {
+            const el = document.getElementById(id);
+            el.classList.toggle('hidden');
+        }
+    </script>
+
+    <footer class="relative z-10 bg-slate-950 border-t border-orange-500/20 py-4 px-4 text-center text-xs text-slate-400">
+        © 2026 {{ course_name }} • Öğrenci Takip Portalı
+    </footer>
+
+</body>
+</html>

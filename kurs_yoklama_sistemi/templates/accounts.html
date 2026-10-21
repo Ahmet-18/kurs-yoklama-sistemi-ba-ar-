@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kayıtlı Hesaplar & Şifre Yönetimi - {{ course_name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 antialiased flex flex-col justify-between font-sans">
+
+    <!-- Üst Gezinme Barı -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-3">
+            
+            <div class="flex items-center gap-3">
+                <a href="{{ url_for('admin_dashboard') }}" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+                <div>
+                    <h1 class="text-base sm:text-lg font-black text-slate-900 leading-tight">Kullanıcı Hesapları & Şifre Portalı</h1>
+                    <p class="text-xs text-slate-500 font-medium">Öğrenci, öğretmen ve yöneticilerin kayıtlı şifre ve hesap listesi</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button onclick="toggleModal('addStudentModal')" class="inline-flex items-center gap-1.5 text-xs font-bold bg-orange-600 hover:bg-orange-700 text-white px-3.5 py-2 rounded-xl shadow-sm transition-all">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>+ Öğrenci Ekle</span>
+                </button>
+                <button onclick="toggleModal('addAccountModal')" class="inline-flex items-center gap-1.5 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl shadow-sm transition-all">
+                    <i class="fa-solid fa-user-tie"></i>
+                    <span>+ Öğretmen/Yönetici Ekle</span>
+                </button>
+                <a href="{{ url_for('admin_dashboard') }}" class="text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-xl transition-colors">
+                    <i class="fa-solid fa-chart-pie mr-1"></i> Panele Dön
+                </a>
+            </div>
+
+        </div>
+    </nav>
+
+    <!-- Ana İçerik -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full space-y-6">
+
+        <!-- Flash Mesajları -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="p-4 rounded-xl text-sm font-medium shadow-sm {% if category == 'danger' %}bg-rose-50 text-rose-700 border border-rose-200{% elif category == 'warning' %}bg-amber-50 text-amber-700 border border-amber-200{% else %}bg-emerald-50 text-emerald-700 border border-emerald-200{% endif %} flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info text-base"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Üst İstatistik Kartları -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-bold text-orange-600 uppercase tracking-wider block">Kayıtlı Öğrenciler</span>
+                    <span class="text-2xl font-black text-slate-900 mt-1 block">{{ students|length }}</span>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-bold text-emerald-600 uppercase tracking-wider block">Öğretmenler</span>
+                    <span class="text-2xl font-black text-emerald-700 mt-1 block">
+                        {{ accounts|selectattr('role', 'equalto', 'teacher')|list|length }}
+                    </span>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-chalkboard-user"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-bold text-purple-600 uppercase tracking-wider block">Yöneticiler</span>
+                    <span class="text-2xl font-black text-purple-700 mt-1 block">
+                        {{ accounts|selectattr('role', 'equalto', 'admin')|list|length }}
+                    </span>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-bold text-amber-600 uppercase tracking-wider block">Giriş Log Kaydı</span>
+                    <span class="text-2xl font-black text-amber-700 mt-1 block">{{ login_logs|length }}</span>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 1. BÖLÜM: ÖĞRENCİ HESAPLARI VE ŞİFRELERİ TABLOSU -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50">
+                <div>
+                    <h2 class="text-base font-black text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-graduation-cap text-orange-600"></i>
+                        Kayıtlı Öğrenci Hesapları ve Şifreleri ({{ students|length }})
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Sisteme kayıtlı öğrencilerin giriş numarası, telefon ve şifre listesi</p>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="toggleAllStudentPasswords()" id="toggleAllStudPassBtn" class="text-xs font-bold bg-white hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded-xl border border-slate-200 shadow-xs transition-colors flex items-center gap-1.5">
+                        <i class="fa-solid fa-eye" id="toggleAllStudPassIcon"></i>
+                        <span id="toggleAllStudPassText">Öğrenci Şifrelerini Göster</span>
+                    </button>
+                    <button type="button" onclick="toggleModal('addStudentModal')" class="text-xs font-bold bg-orange-600 hover:bg-orange-700 text-white px-3.5 py-1.5 rounded-xl shadow-xs transition-colors flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus"></i>
+                        Yeni Öğrenci
+                    </button>
+                </div>
+            </div>
+
+            {% if students %}
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                                <th class="py-3 px-4">#</th>
+                                <th class="py-3 px-4">Öğrenci Adı Soyadı</th>
+                                <th class="py-3 px-4">Öğrenci No</th>
+                                <th class="py-3 px-4">Telefon</th>
+                                <th class="py-3 px-4">Giriş Şifresi</th>
+                                <th class="py-3 px-4">Son Giriş</th>
+                                <th class="py-3 px-4 text-right">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-xs">
+                            {% for s in students %}
+                                <tr class="hover:bg-slate-50/80 transition-colors">
+                                    <td class="py-3.5 px-4 font-mono text-slate-400 font-bold">
+                                        {{ loop.index }}
+                                    </td>
+                                    
+                                    <td class="py-3.5 px-4">
+                                        <div class="flex items-center gap-2.5">
+                                            <div class="w-9 h-9 rounded-xl bg-orange-600 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
+                                                {{ s.name[0] if s.name else 'Ö' }}
+                                            </div>
+                                            <div>
+                                                <span class="font-bold text-slate-900 text-sm block">{{ s.name }}</span>
+                                                <span class="text-[11px] text-slate-400">Kayıt: {{ s.created_at[:16] if s.created_at else '-' }}</span>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <td class="py-3.5 px-4">
+                                        {% if s.student_no %}
+                                            <span class="font-mono font-bold text-orange-700 bg-orange-50 px-2.5 py-1 rounded-lg border border-orange-200">
+                                                {{ s.student_no }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-slate-400 italic text-[11px]">-</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td class="py-3.5 px-4 font-mono text-slate-600">
+                                        {{ s.phone or '-' }}
+                                    </td>
+
+                                    <td class="py-3.5 px-4">
+                                        <div class="flex items-center gap-2">
+                                            <div class="font-mono font-bold text-slate-800 bg-slate-100 px-3 py-1 rounded-lg border border-slate-200 select-all tracking-wider student-pass-field" data-password="{{ s.password or '123456' }}">
+                                                <span class="student-pass-masked">••••••••</span>
+                                                <span class="student-pass-plain hidden">{{ s.password or '123456' }}</span>
+                                            </div>
+                                            <button type="button" onclick="toggleSingleStudentPass(this)" class="text-slate-400 hover:text-slate-700 p-1" title="Şifreyi Göster/Gizle">
+                                                <i class="fa-regular fa-eye"></i>
+                                            </button>
+                                            <button type="button" onclick="copyPassword('{{ s.password or '123456' }}')" class="text-slate-400 hover:text-orange-600 p-1" title="Şifreyi Kopyala">
+                                                <i class="fa-regular fa-copy"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+
+                                    <td class="py-3.5 px-4">
+                                        {% if s.last_login %}
+                                            <span class="text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
+                                                {{ s.last_login[:16] }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-[11px] text-slate-400 italic">Henüz giriş yapmadı</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td class="py-3.5 px-4 text-right">
+                                        <div class="flex items-center justify-end gap-1.5">
+                                            <!-- Düzenle Butonu -->
+                                            <button 
+                                                type="button" 
+                                                onclick="openEditStudentModal('{{ s.id }}', '{{ s.name }}', '{{ s.student_no or '' }}', '{{ s.phone or '' }}', '{{ s.password or '123456' }}')"
+                                                class="p-1.5 bg-slate-100 hover:bg-orange-50 text-slate-600 hover:text-orange-600 rounded-lg transition-colors" 
+                                                title="Öğrenciyi ve Şifresini Düzenle"
+                                            >
+                                                <i class="fa-solid fa-pen-to-square"></i>
+                                            </button>
+
+                                            <!-- Sil Butonu -->
+                                            <form action="{{ url_for('delete_student_account_route', student_id=s.id) }}" method="POST" onsubmit="return confirm('{{ s.name }} isimli öğrenciyi ve hesabını silmek istediğinize emin misiniz?');">
+                                                <button type="submit" class="p-1.5 bg-slate-100 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-lg transition-colors" title="Hesabı Sil">
+                                                    <i class="fa-regular fa-trash-can"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="p-8 text-center text-slate-400">
+                    <i class="fa-solid fa-graduation-cap text-3xl mb-2 text-slate-300"></i>
+                    <p class="text-xs">Henüz kayıtlı öğrenci bulunmuyor.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- 2. BÖLÜM: ÖĞRETMEN VE YÖNETİCİ HESAPLARI VE ŞİFRELERİ TABLOSU -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50">
+                <div>
+                    <h2 class="text-base font-black text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-key text-indigo-600"></i>
+                        Öğretmen ve Yönetici Hesapları ({{ accounts|length }})
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Sisteme kayıt olan öğretmen ve yöneticilerin güncel şifre listesi</p>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="toggleAllPasswords()" id="toggleAllPassBtn" class="text-xs font-bold bg-white hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded-xl border border-slate-200 shadow-xs transition-colors flex items-center gap-1.5">
+                        <i class="fa-solid fa-eye" id="toggleAllPassIcon"></i>
+                        <span id="toggleAllPassText">Tüm Şifreleri Göster</span>
+                    </button>
+                    <button type="button" onclick="toggleModal('addAccountModal')" class="text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-xl shadow-xs transition-colors flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus"></i>
+                        Yeni Öğretmen/Yönetici
+                    </button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                            <th class="py-3 px-4">#</th>
+                            <th class="py-3 px-4">Adı ve Soyadı</th>
+                            <th class="py-3 px-4">Kullanıcı Adı</th>
+                            <th class="py-3 px-4">Giriş Şifresi</th>
+                            <th class="py-3 px-4">Yetki / Rol</th>
+                            <th class="py-3 px-4">Branş / Birim</th>
+                            <th class="py-3 px-4">Son Giriş</th>
+                            <th class="py-3 px-4 text-right">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-xs">
+                        {% for acc in accounts %}
+                            <tr class="hover:bg-slate-50/80 transition-colors">
+                                <td class="py-3.5 px-4 font-mono text-slate-400 font-bold">
+                                    {{ loop.index }}
+                                </td>
+                                
+                                <td class="py-3.5 px-4">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm text-white shrink-0
+                                            {% if acc.role == 'admin' %}bg-purple-600{% elif acc.role == 'teacher' %}bg-emerald-600{% else %}bg-slate-700{% endif %}">
+                                            {{ acc.full_name[0] if acc.full_name else 'B' }}
+                                        </div>
+                                        <div>
+                                            <span class="font-bold text-slate-900 text-sm block">{{ acc.full_name }}</span>
+                                            <span class="text-[11px] text-slate-400">Kayıt: {{ acc.created_at[:16] if acc.created_at else '-' }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="py-3.5 px-4">
+                                    <span class="font-mono font-bold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100">
+                                        {{ acc.username }}
+                                    </span>
+                                </td>
+
+                                <td class="py-3.5 px-4">
+                                    <div class="flex items-center gap-2">
+                                        <div class="font-mono font-bold text-slate-800 bg-slate-100 px-3 py-1 rounded-lg border border-slate-200 select-all tracking-wider pass-field" data-password="{{ acc.password }}">
+                                            <span class="pass-masked">••••••••</span>
+                                            <span class="pass-plain hidden">{{ acc.password }}</span>
+                                        </div>
+                                        <button type="button" onclick="toggleSinglePassword(this)" class="text-slate-400 hover:text-slate-700 p-1" title="Şifreyi Göster/Gizle">
+                                            <i class="fa-regular fa-eye"></i>
+                                        </button>
+                                        <button type="button" onclick="copyPassword('{{ acc.password }}')" class="text-slate-400 hover:text-indigo-600 p-1" title="Şifreyi Kopyala">
+                                            <i class="fa-regular fa-copy"></i>
+                                        </button>
+                                    </div>
+                                </td>
+
+                                <td class="py-3.5 px-4">
+                                    <span class="px-2.5 py-1 rounded-full text-[11px] font-bold inline-flex items-center gap-1
+                                        {% if acc.role == 'admin' %}bg-purple-100 text-purple-800 border border-purple-200
+                                        {% elif acc.role == 'teacher' %}bg-emerald-100 text-emerald-800 border border-emerald-200
+                                        {% else %}bg-slate-100 text-slate-800 border border-slate-200{% endif %}">
+                                        {% if acc.role == 'admin' %}
+                                            <i class="fa-solid fa-shield-halved text-[10px]"></i> Yönetici
+                                        {% elif acc.role == 'teacher' %}
+                                            <i class="fa-solid fa-chalkboard-user text-[10px]"></i> Öğretmen
+                                        {% else %}
+                                            <i class="fa-solid fa-user text-[10px]"></i> Kullanıcı
+                                        {% endif %}
+                                    </span>
+                                </td>
+
+                                <td class="py-3.5 px-4 font-semibold text-slate-700">
+                                    {{ acc.subject or 'Genel' }}
+                                </td>
+
+                                <td class="py-3.5 px-4">
+                                    {% if acc.last_login %}
+                                        <span class="text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
+                                            {{ acc.last_login[:16] }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-[11px] text-slate-400 italic">Henüz giriş yapmadı</span>
+                                    {% endif %}
+                                </td>
+
+                                <td class="py-3.5 px-4 text-right">
+                                    <div class="flex items-center justify-end gap-1.5">
+                                        <!-- Düzenle Butonu -->
+                                        <button 
+                                            type="button" 
+                                            onclick="openEditAccountModal('{{ acc.id }}', '{{ acc.full_name }}', '{{ acc.username }}', '{{ acc.password }}', '{{ acc.subject }}', '{{ acc.role }}')"
+                                            class="p-1.5 bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 rounded-lg transition-colors" 
+                                            title="Hesabı ve Şifreyi Düzenle"
+                                        >
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </button>
+
+                                        <!-- Sil Butonu -->
+                                        {% if acc.id != 1 %}
+                                            <form action="{{ url_for('delete_account_route', user_id=acc.id) }}" method="POST" onsubmit="return confirm('{{ acc.full_name }} ({{ acc.username }}) kullanıcısını ve giriş şifresini silmek istediğinize emin misiniz?');">
+                                                <button type="submit" class="p-1.5 bg-slate-100 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-lg transition-colors" title="Hesabı Sil">
+                                                    <i class="fa-regular fa-trash-can"></i>
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <span class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md" title="Ana yönetici hesabı korumalıdır">Korumalı</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 3. BÖLÜM: CANLI GİRİŞ YAPANLAR LOG GEÇMİŞİ -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
+                <div>
+                    <h2 class="text-base font-black text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-amber-600"></i>
+                        Sisteme Giriş Yapanlar Geçmişi & Canlı Log Kayıtları ({{ login_logs|length }})
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Uygulamaya giriş yapan öğrencilerin, öğretmenlerin ve yöneticilerin tarih, saat ve IP kayıtları</p>
+                </div>
+
+                {% if login_logs %}
+                    <form action="{{ url_for('clear_logs_route') }}" method="POST" onsubmit="return confirm('Tüm giriş geçmişi loglarını temizlemek istediğinize emin misiniz?');">
+                        <button type="submit" class="text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-xl border border-rose-200 transition-colors flex items-center gap-1">
+                            <i class="fa-solid fa-trash-arrow-up"></i>
+                            <span>Logları Temizle</span>
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+
+            {% if login_logs %}
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                                <th class="py-3 px-4">Giriş Zamanı</th>
+                                <th class="py-3 px-4">Kullanıcı / No</th>
+                                <th class="py-3 px-4">Adı Soyadı</th>
+                                <th class="py-3 px-4">Yetki / Rol</th>
+                                <th class="py-3 px-4">IP Adresi</th>
+                                <th class="py-3 px-4">Giriş Durumu</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-xs">
+                            {% for log in login_logs %}
+                                <tr class="hover:bg-slate-50/80 transition-colors">
+                                    <td class="py-3 px-4 font-mono text-slate-600 font-semibold">
+                                        <i class="fa-regular fa-calendar-check text-slate-400 mr-1"></i>
+                                        {{ log.created_at[:19] if log.created_at else '-' }}
+                                    </td>
+
+                                    <td class="py-3 px-4 font-mono font-bold text-slate-900">
+                                        {{ log.username }}
+                                    </td>
+
+                                    <td class="py-3 px-4 font-bold text-slate-800">
+                                        {{ log.full_name or '-' }}
+                                    </td>
+
+                                    <td class="py-3 px-4">
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md 
+                                            {% if log.role == 'student' or log.role == 'Öğrenci' %}bg-orange-100 text-orange-800 border border-orange-200
+                                            {% elif log.role == 'teacher' or log.role == 'Öğretmen' %}bg-emerald-100 text-emerald-800 border border-emerald-200
+                                            {% elif log.role == 'admin' or log.role == 'Yönetici' %}bg-purple-100 text-purple-800 border border-purple-200
+                                            {% else %}bg-slate-100 text-slate-700{% endif %}">
+                                            {% if log.role == 'student' or log.role == 'Öğrenci' %}🎓 Öğrenci
+                                            {% elif log.role == 'teacher' or log.role == 'Öğretmen' %}👨‍🏫 Öğretmen
+                                            {% elif log.role == 'admin' or log.role == 'Yönetici' %}🛡️ Yönetici
+                                            {% else %}{{ log.role }}{% endif %}
+                                        </span>
+                                    </td>
+
+                                    <td class="py-3 px-4 font-mono text-slate-500 text-[11px]">
+                                        {{ log.ip_address or '127.0.0.1' }}
+                                    </td>
+
+                                    <td class="py-3 px-4">
+                                        {% if 'Başarılı' in log.status %}
+                                            <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                                                <i class="fa-solid fa-circle-check text-[10px]"></i>
+                                                {{ log.status }}
+                                            </span>
+                                        {% else %}
+                                            <span class="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200">
+                                                <i class="fa-solid fa-triangle-exclamation text-[10px]"></i>
+                                                {{ log.status }}
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="p-8 text-center text-slate-400">
+                    <i class="fa-solid fa-clock-rotate-left text-3xl mb-2 text-slate-300"></i>
+                    <p class="text-xs">Henüz giriş kaydı bulunmuyor.</p>
+                </div>
+            {% endif %}
+        </div>
+
+    </main>
+
+    <!-- YENİ ÖĞRENCİ EKLEME MODALI -->
+    <div id="addStudentModal" class="fixed inset-0 bg-slate-900/80 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <h3 class="text-base font-black text-slate-900">Yeni Öğrenci Hesabı Ekle</h3>
+                </div>
+                <button onclick="toggleModal('addStudentModal')" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form action="{{ url_for('save_student_account_route') }}" method="POST" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Öğrenci Adı Soyadı <span class="text-rose-500">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        name="name" 
+                        required 
+                        placeholder="Örn: Ahmet Yılmaz"
+                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-orange-500 outline-none"
+                    >
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Öğrenci No
+                        </label>
+                        <input 
+                            type="text" 
+                            name="student_no" 
+                            placeholder="Örn: 104"
+                            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-orange-500 outline-none font-mono"
+                        >
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Telefon
+                        </label>
+                        <input 
+                            type="tel" 
+                            name="phone" 
+                            placeholder="05XX..."
+                            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-orange-500 outline-none"
+                        >
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                            Giriş Şifresi <span class="text-rose-500">*</span>
+                        </label>
+                        <span class="text-[11px] text-orange-600 font-medium">Varsayılan: <code>123456</code></span>
+                    </div>
+                    <input 
+                        type="text" 
+                        name="password" 
+                        value="123456"
+                        required 
+                        placeholder="Şifre..."
+                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-orange-500 outline-none font-mono font-bold text-slate-800"
+                    >
+                </div>
+
+                <div class="pt-2 flex gap-2">
+                    <button type="button" onclick="toggleModal('addStudentModal')" class="w-1/2 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all">
+                        Vazgeç
+                    </button>
+                    <button type="submit" class="w-1/2 py-2.5 px-4 bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+                        Öğrenciyi Kaydet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ÖĞRENCİ DÜZENLEME MODALI -->
+    <div id="editStudentModal" class="fixed inset-0 bg-slate-900/80 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-user-pen"></i>
+                    </div>
+                    <h3 class="text-base font-black text-slate-900">Öğrenci ve Şifre Düzenle</h3>
+                </div>
+                <button onclick="toggleModal('editStudentModal')" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form action="{{ url_for('save_student_account_route') }}" method="POST" class="space-y-4">
+                <input type="hidden" name="student_id" id="edit_student_id">
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Öğrenci Adı Soyadı <span class="text-rose-500">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        name="name" 
+                        id="edit_student_name"
+                        required 
+                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-orange-500 outline-none"
+                    >
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Öğrenci No
+                        </label>
+                        <input 
+                            type="text" 
+                            name="student_no" 
+                            id="edit_student_no"
+                            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-orange-500 outline-none font-mono"
+                        >
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Telefon
+                        </label>
+                        <input 
+                            type="tel" 
+                            name="phone" 
+                            id="edit_student_phone"
+                            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-orange-500 outline-none"
+                        >
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Giriş Şifresi <span class="text-rose-500">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        name="password" 
+                        id="edit_student_password"
+                        required 
+                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-orange-500 outline-none font-mono font-bold text-slate-800"
+                    >
+                </div>
+
+                <div class="pt-2 flex gap-2">
+                    <button type="button" onclick="toggleModal('editStudentModal')" class="w-1/2 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all">
+                        Vazgeç
+                    </button>
+                    <button type="submit" class="w-1/2 py-2.5 px-4 bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+                        Kaydet ve Güncelle
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- YENİ ÖĞRETMEN/YÖNETİCİ HESAP EKLEME MODALI -->
+    <div id="addAccountModal" class="fixed inset-0 bg-slate-900/80 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-user-tie"></i>
+                    </div>
+                    <h3 class="text-base font-black text-slate-900">Yeni Öğretmen / Yönetici Ekle</h3>
+                </div>
+                <button onclick="toggleModal('addAccountModal')" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form action="{{ url_for('add_account_route') }}" method="POST" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Adı ve Soyadı <span class="text-rose-500">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        name="full_name" 
+                        required 
+                        placeholder="Örn: Mehmet Demir"
+                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                    >
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Kullanıcı Adı <span class="text-rose-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            name="username" 
+                            required 
+                            placeholder="Örn: mehmet"
+                            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                        >
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Giriş Şifresi <span class="text-rose-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            name="password" 
+                            required 
+                            placeholder="Şifre girin..."
+                            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none font-mono"
+                        >
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Branş / Birim
+                        </label>
+                        <input 
+                            type="text" 
+                            name="subject" 
+                            placeholder="Örn: Fizik, Rehberlik"
+                            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                        >
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Yetki / Rol
+                        </label>
+                        <select name="role" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <option value="teacher">Öğretmen</option>
+                            <option value="admin">Yönetici</option>
+                            <option value="user">Kullanıcı</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="pt-2 flex gap-2">
+                    <button type="button" onclick="toggleModal('addAccountModal')" class="w-1/2 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all">
+                        Vazgeç
+                    </button>
+                    <button type="submit" class="w-1/2 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+                        Hesabı Oluştur
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ÖĞRETMEN/YÖNETİCİ DÜZENLEME MODALI -->
+    <div id="editAccountModal" class="fixed inset-0 bg-slate-900/80 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-user-pen"></i>
+                    </div>
+                    <h3 class="text-base font-black text-slate-900">Hesap ve Şifre Düzenle</h3>
+                </div>
+                <button onclick="toggleModal('editAccountModal')" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form action="{{ url_for('update_account_route') }}" method="POST" class="space-y-4">
+                <input type="hidden" name="user_id" id="edit_user_id">
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Adı ve Soyadı <span class="text-rose-500">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        name="full_name" 
+                        id="edit_full_name"
+                        required 
+                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                    >
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Kullanıcı Adı <span class="text-rose-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            name="username" 
+                            id="edit_username"
+                            required 
+                            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                        >
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Giriş Şifresi <span class="text-rose-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            name="password" 
+                            id="edit_password"
+                            required 
+                            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none font-mono"
+                        >
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Branş / Birim
+                        </label>
+                        <input 
+                            type="text" 
+                            name="subject" 
+                            id="edit_subject"
+                            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                        >
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Yetki / Rol
+                        </label>
+                        <select name="role" id="edit_role" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <option value="teacher">Öğretmen</option>
+                            <option value="admin">Yönetici</option>
+                            <option value="user">Kullanıcı</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="pt-2 flex gap-2">
+                    <button type="button" onclick="toggleModal('editAccountModal')" class="w-1/2 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all">
+                        Vazgeç
+                    </button>
+                    <button type="submit" class="w-1/2 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+                        Kaydet ve Güncelle
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Bildirimi -->
+    <div id="copyToast" class="fixed bottom-6 right-6 bg-slate-900 text-white text-xs font-bold px-4 py-3 rounded-2xl shadow-xl z-50 flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300">
+        <i class="fa-solid fa-check text-emerald-400 text-base"></i>
+        <span>Şifre panoya kopyalandı!</span>
+    </div>
+
+    <!-- JavaScript İşlemleri -->
+    <script>
+        function toggleModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.toggle('hidden');
+        }
+
+        // Öğretmen/Yönetici tek şifre göster/gizle
+        function toggleSinglePassword(btn) {
+            const container = btn.closest('td').querySelector('.pass-field');
+            const masked = container.querySelector('.pass-masked');
+            const plain = container.querySelector('.pass-plain');
+            const icon = btn.querySelector('i');
+
+            if (plain.classList.contains('hidden')) {
+                plain.classList.remove('hidden');
+                masked.classList.add('hidden');
+                icon.className = 'fa-regular fa-eye-slash';
+            } else {
+                plain.classList.add('hidden');
+                masked.classList.remove('hidden');
+                icon.className = 'fa-regular fa-eye';
+            }
+        }
+
+        // Öğrenci tek şifre göster/gizle
+        function toggleSingleStudentPass(btn) {
+            const container = btn.closest('td').querySelector('.student-pass-field');
+            const masked = container.querySelector('.student-pass-masked');
+            const plain = container.querySelector('.student-pass-plain');
+            const icon = btn.querySelector('i');
+
+            if (plain.classList.contains('hidden')) {
+                plain.classList.remove('hidden');
+                masked.classList.add('hidden');
+                icon.className = 'fa-regular fa-eye-slash';
+            } else {
+                plain.classList.add('hidden');
+                masked.classList.remove('hidden');
+                icon.className = 'fa-regular fa-eye';
+            }
+        }
+
+        // Tüm Öğretmen/Yönetici şifrelerini tek tıkla göster/gizle
+        let allShown = false;
+        function toggleAllPasswords() {
+            allShown = !allShown;
+            const plainElements = document.querySelectorAll('.pass-plain');
+            const maskedElements = document.querySelectorAll('.pass-masked');
+            const icon = document.getElementById('toggleAllPassIcon');
+            const text = document.getElementById('toggleAllPassText');
+
+            if (allShown) {
+                plainElements.forEach(el => el.classList.remove('hidden'));
+                maskedElements.forEach(el => el.classList.add('hidden'));
+                icon.className = 'fa-solid fa-eye-slash';
+                text.textContent = 'Tüm Şifreleri Gizle';
+            } else {
+                plainElements.forEach(el => el.classList.add('hidden'));
+                maskedElements.forEach(el => el.classList.remove('hidden'));
+                icon.className = 'fa-solid fa-eye';
+                text.textContent = 'Tüm Şifreleri Göster';
+            }
+        }
+
+        // Tüm Öğrenci şifrelerini tek tıkla göster/gizle
+        let allStudShown = false;
+        function toggleAllStudentPasswords() {
+            allStudShown = !allStudShown;
+            const plainElements = document.querySelectorAll('.student-pass-plain');
+            const maskedElements = document.querySelectorAll('.student-pass-masked');
+            const icon = document.getElementById('toggleAllStudPassIcon');
+            const text = document.getElementById('toggleAllStudPassText');
+
+            if (allStudShown) {
+                plainElements.forEach(el => el.classList.remove('hidden'));
+                maskedElements.forEach(el => el.classList.add('hidden'));
+                icon.className = 'fa-solid fa-eye-slash';
+                text.textContent = 'Öğrenci Şifrelerini Gizle';
+            } else {
+                plainElements.forEach(el => el.classList.add('hidden'));
+                maskedElements.forEach(el => el.classList.remove('hidden'));
+                icon.className = 'fa-solid fa-eye';
+                text.textContent = 'Öğrenci Şifrelerini Göster';
+            }
+        }
+
+        // Şifreyi Panoya Kopyalama
+        function copyPassword(pass) {
+            navigator.clipboard.writeText(pass).then(() => {
+                const toast = document.getElementById('copyToast');
+                toast.classList.remove('translate-y-20', 'opacity-0');
+                setTimeout(() => {
+                    toast.classList.add('translate-y-20', 'opacity-0');
+                }, 2000);
+            });
+        }
+
+        // Öğretmen/Yönetici Düzenleme Modalı Açma
+        function openEditAccountModal(id, fullName, username, password, subject, role) {
+            document.getElementById('edit_user_id').value = id;
+            document.getElementById('edit_full_name').value = fullName;
+            document.getElementById('edit_username').value = username;
+            document.getElementById('edit_password').value = password;
+            document.getElementById('edit_subject').value = subject || 'Genel';
+            document.getElementById('edit_role').value = role || 'teacher';
+            toggleModal('editAccountModal');
+        }
+
+        // Öğrenci Düzenleme Modalı Açma
+        function openEditStudentModal(id, name, studentNo, phone, password) {
+            document.getElementById('edit_student_id').value = id;
+            document.getElementById('edit_student_name').value = name;
+            document.getElementById('edit_student_no').value = studentNo;
+            document.getElementById('edit_student_phone').value = phone;
+            document.getElementById('edit_student_password').value = password || '123456';
+            toggleModal('editStudentModal');
+        }
+    </script>
+
+    <footer class="bg-white border-t border-slate-200 py-4 px-4 text-center text-xs text-slate-500">
+        © 2026 {{ course_name }} • Kullanıcı ve Şifre Güvenlik Yönetimi
+    </footer>
+
+</body>
+</html>
